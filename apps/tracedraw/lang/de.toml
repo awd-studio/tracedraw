@@ -9281,3 +9281,6 @@ media.pattern_follow = "Pfadrichtung folgen" # mt
 media.pattern_reverse = "Richtung umkehren" # mt
 media.pattern_hint = "Gespeichertes Motiv wählen, Kurve auswählen und anwenden. Größe: längste Motivseite. Abstand: Mitte zu Mitte. Bibliotheksänderungen ändern vorhandene Striche nicht." # mt
 media.pattern_spacing_desc = "Abstand zwischen den Mittelpunkten entlang der Kurve in Millimetern." # mt
+media.pattern_name = "Motivname" # mt
+media.pattern_gallery = "Gespeicherte Motive" # mt
+media.pattern_empty = "Keine gespeicherten Motive. Ein Objekt auswählen und speichern." # mt

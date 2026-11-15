@@ -9281,3 +9281,6 @@ media.pattern_follow = "पथ की दिशा का अनुसरण क
 media.pattern_reverse = "दिशा उलटें" # mt
 media.pattern_hint = "सहेजा गया रूपांकन और वक्र चुनें और लागू करें। आकार सबसे लंबी भुजा है, अंतर केंद्रों के बीच है। लाइब्रेरी के बदलाव मौजूदा स्ट्रोक नहीं बदलते।" # mt
 media.pattern_spacing_desc = "वक्र पर केंद्रों के बीच की दूरी, मिलीमीटर में।" # mt
+media.pattern_name = "रूपांकन का नाम" # mt
+media.pattern_gallery = "सहेजे गए रूपांकन" # mt
+media.pattern_empty = "कोई रूपांकन सहेजा नहीं गया। कोई वस्तु चुनकर सहेजें।" # mt

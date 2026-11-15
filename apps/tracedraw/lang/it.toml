@@ -9281,3 +9281,6 @@ media.pattern_follow = "Segui direzione del tracciato" # mt
 media.pattern_reverse = "Inverti direzione" # mt
 media.pattern_hint = "Scegli un motivo salvato, seleziona una curva e applica. Dimensione: lato maggiore. Spaziatura: da centro a centro. Le modifiche della libreria non cambiano i tratti esistenti." # mt
 media.pattern_spacing_desc = "Distanza da centro a centro lungo la curva, in millimetri." # mt
+media.pattern_name = "Nome del motivo" # mt
+media.pattern_gallery = "Motivi salvati" # mt
+media.pattern_empty = "Nessun motivo salvato. Seleziona un oggetto e salvalo." # mt

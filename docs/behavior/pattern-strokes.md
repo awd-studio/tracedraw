@@ -8,17 +8,36 @@ editable guide, and only the repeated motifs are drawn.
 
 1. Select a plain vector object, or several objects with their colours.
    Open Effects > Brush Strokes and choose Pattern stroke.
-2. Save selection as motif stores a snapshot in this document's symbol
-   library. The original objects stay on the page. Saved motifs are kept
-   in `.tdraw` and can be chosen again from the panel's list.
-3. Select a curve and Apply to curve, or draw a new stroke with I.
-4. To change an existing stroke, select it, choose Pattern stroke and
+2. Enter a Motif name and click Save selection as motif. The original
+   objects stay on the page. Empty names get unique numbered defaults;
+   an existing name gets a free numeric suffix instead of being overwritten.
+   Saved motifs are kept in this document's `.tdraw` library; the motif
+   library itself is not stored in interchange exports.
+3. Choose a saved motif by its colour preview or name in the scrollable
+   gallery. The selected row is highlighted. Existing duplicate names are
+   distinguished by their entry numbers. Only visible rows request a
+   preview, and unchanged thumbnails are cached.
+4. To rename the chosen motif, edit Motif name and click Rename. Delete
+   removes the selected library entry. Both operations are undoable;
+   deleting a motif leaves existing strokes and drawing objects intact.
+5. Select a curve and Apply to curve, or draw a new stroke with I.
+6. To change an existing stroke, select it, choose Pattern stroke and
    Load selected stroke. Change the settings and Apply to curve. This is
    one undo step and replaces the pattern effect without adding a second
    pattern or deleting the guide.
-5. A loaded imported motif can also be saved for reuse. Library entries
-   and strokes hold independent snapshots: editing a symbol does not
-   change existing strokes. Choose the edited entry and apply it again.
+7. A loaded imported motif can also be saved for reuse. Library entries
+   and strokes hold independent snapshots: renaming or deleting a library
+   entry does not change existing strokes.
+
+Older files that kept motifs as symbols remain readable. The first library
+edit copies those definitions to a separate motif list without deleting,
+renumbering or changing ordinary drawing symbols. An explicitly emptied
+library stays empty after saving and reopening.
+
+Each saved motif keeps its placement origin. A newly selected object uses
+its own geometric centre, even after loading an imported stroke whose
+origin is elsewhere. Choosing a preset loads that preset's origin, so
+turns in the guide do not displace the copies away from the curve.
 
 Plain paths, rectangles, ellipses, polygons and groups of these are
 supported. Convert text and symbol instances to curves first, and break

@@ -2286,6 +2286,12 @@ fn pattern_stroke_controls(app: &mut App, ui: &mut Ui) {
             .iter()
             .all(tracedraw_core::pattern_stroke::valid_motif))
         || app.media_motif.is_some();
+    ui.add(
+        egui::TextEdit::singleline(&mut app.media_motif_name)
+            .hint_text(tr("media.pattern_name"))
+            .char_limit(120)
+            .desired_width(ui.available_width()),
+    );
     if ui
         .add_enabled(can_save, egui::Button::new(tr("media.pattern_save")))
         .rich_tip(tr("media.pattern_save_desc"))
@@ -2293,42 +2299,7 @@ fn pattern_stroke_controls(app: &mut App, ui: &mut Ui) {
     {
         app.save_pattern_motif();
     }
-    let motifs: Vec<_> = app
-        .doc()
-        .symbols
-        .iter()
-        .enumerate()
-        .filter(|(_, s)| tracedraw_core::pattern_stroke::valid_motif(&s.shape))
-        .map(|(i, s)| {
-            (
-                i,
-                s.name.clone(),
-                app.media_motif.as_ref() == Some(&s.shape),
-            )
-        })
-        .collect();
-    let shown = motifs
-        .iter()
-        .find(|(_, _, selected)| *selected)
-        .map(|(_, name, _)| name.clone())
-        .or_else(|| app.media_motif.as_ref().and_then(|s| s.name.clone()))
-        .unwrap_or_else(|| tr("media.pattern_motif"));
-    let mut chosen = None;
-    crate::ui::keynav::ComboBox::from_id_salt("pattern_motif")
-        .selected_text(shown)
-        .show_ui(ui, |ui| {
-            for (index, name, selected) in motifs {
-                if ui.selectable_label(selected, name).clicked() {
-                    chosen = Some(index);
-                }
-            }
-        });
-    if let Some(motif) = chosen
-        .and_then(|i| app.doc().symbols.get(i))
-        .map(|s| s.shape.clone())
-    {
-        app.media_motif = Some(motif);
-    }
+    pattern_motif_gallery(app, ui);
     let has_pattern = selected.iter().any(|s| {
         s.effects
             .iter()
@@ -2382,6 +2353,116 @@ fn pattern_stroke_controls(app: &mut App, ui: &mut Ui) {
     );
     ui.checkbox(&mut app.media_pattern.reverse, tr("media.pattern_reverse"));
     dim(ui, tr("media.pattern_hint"));
+}
+
+/// A scrollable visual library. Only visible rows request a preview, and
+/// each source is rasterised once until its geometry or colours change.
+pub(crate) fn pattern_motif_gallery(app: &mut App, ui: &mut Ui) {
+    ui.label(tr("media.pattern_gallery"));
+    let motifs: Vec<_> = (0..app.pattern_motif_count())
+        .filter_map(|i| {
+            let (name, shape, _) = app.pattern_motif_entry(i)?;
+            tracedraw_core::pattern_stroke::valid_motif(shape).then(|| {
+                (
+                    i,
+                    name.to_string(),
+                    app.media_motif_index == Some(i) && app.media_motif.as_ref() == Some(shape),
+                )
+            })
+        })
+        .collect();
+    if motifs.is_empty() {
+        dim(ui, tr("media.pattern_empty"));
+    }
+    let mut chosen = None;
+    egui::ScrollArea::vertical()
+        .id_salt("pattern_motif_gallery")
+        .max_height(180.0)
+        .show_rows(ui, 44.0, motifs.len(), |ui, rows| {
+            for row in rows {
+                let Some((index, name, selected)) = motifs.get(row) else {
+                    continue;
+                };
+                let duplicate = motifs.iter().filter(|(_, n, _)| n == name).count() > 1;
+                let shown = if duplicate {
+                    format!("{name} ({})", index + 1)
+                } else {
+                    name.clone()
+                };
+                let picture = app.pattern_motif_picture(
+                    ui.ctx(),
+                    *index,
+                    (40.0 * ui.ctx().pixels_per_point()).ceil() as u32,
+                );
+                ui.horizontal(|ui| {
+                    let (rect, response) =
+                        ui.allocate_exact_size(egui::vec2(40.0, 40.0), egui::Sense::click());
+                    crate::ui::before_after::checkerboard(ui.painter(), rect);
+                    if let Some(texture) = picture {
+                        let size = texture.size_vec2();
+                        let fit = 36.0 / size.x.max(size.y).max(1.0);
+                        let place = egui::Rect::from_center_size(rect.center(), size * fit);
+                        ui.painter().image(
+                            texture.id(),
+                            place,
+                            egui::Rect::from_min_max(egui::Pos2::ZERO, egui::pos2(1.0, 1.0)),
+                            egui::Color32::WHITE,
+                        );
+                    }
+                    ui.painter().rect_stroke(
+                        rect,
+                        2.0,
+                        egui::Stroke::new(
+                            if *selected { 2.0 } else { 1.0 },
+                            if *selected {
+                                Tokens::ACCENT
+                            } else {
+                                Tokens::control_border()
+                            },
+                        ),
+                        egui::StrokeKind::Inside,
+                    );
+                    if response.rich_tip(name.as_str()).clicked() {
+                        chosen = Some(*index);
+                    }
+                    if ui
+                        .add(egui::Button::new(shown).selected(*selected).truncate())
+                        .clicked()
+                    {
+                        chosen = Some(*index);
+                    }
+                });
+            }
+        });
+    if let Some(index) = chosen {
+        app.choose_pattern_motif(index);
+    }
+    let active = app.media_motif_index.filter(|&i| {
+        app.pattern_motif_entry(i)
+            .is_some_and(|(_, shape, _)| app.media_motif.as_ref() == Some(shape))
+    });
+    ui.horizontal(|ui| {
+        if ui
+            .add_enabled(
+                active.is_some() && !app.media_motif_name.trim().is_empty(),
+                egui::Button::new(tr("dialog.rename_entry")),
+            )
+            .clicked()
+        {
+            if let Some(index) = active {
+                app.rename_pattern_motif(index);
+            }
+        }
+        if ui
+            .add_enabled(active.is_some(), egui::Button::new(tr("docker.delete")))
+            .rich_tip(tr("effects.preset_delete"))
+            .clicked()
+        {
+            if let Some(index) = active {
+                app.delete_pattern_motif(index);
+            }
+        }
+    });
 }
 
 /// A square icon button drawn by `paint`, with its tip.

@@ -9281,3 +9281,6 @@ media.pattern_follow = "跟随路径方向" # mt
 media.pattern_reverse = "反转方向" # mt
 media.pattern_hint = "选择已保存图案，选择曲线并应用。大小为图案最长边，间距为中心间距。编辑图库不会更改现有笔画。" # mt
 media.pattern_spacing_desc = "沿曲线的中心间距，单位为毫米。" # mt
+media.pattern_name = "图案名称" # mt
+media.pattern_gallery = "已保存图案" # mt
+media.pattern_empty = "没有已保存图案。请选择对象并保存。" # mt

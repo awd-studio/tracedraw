@@ -9281,3 +9281,6 @@ media.pattern_follow = "Ikuti arah jalur" # mt
 media.pattern_reverse = "Balik arah" # mt
 media.pattern_hint = "Pilih motif tersimpan dan kurva lalu terapkan. Ukuran: sisi terpanjang. Jarak: antarpusat. Perubahan pustaka tidak mengubah goresan yang ada." # mt
 media.pattern_spacing_desc = "Jarak antarpusat sepanjang kurva dalam milimeter." # mt
+media.pattern_name = "Nama motif" # mt
+media.pattern_gallery = "Motif tersimpan" # mt
+media.pattern_empty = "Belum ada motif tersimpan. Pilih objek dan simpan." # mt

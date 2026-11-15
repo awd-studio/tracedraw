@@ -162,6 +162,11 @@ pub enum Command {
     AddSymbol {
         symbol: Symbol,
     },
+    /// Edit the independent motif library without changing symbol indices or
+    /// existing pattern-stroke snapshots. Also migrates the earlier library.
+    SetPatternMotifs {
+        motifs: Vec<crate::pattern_stroke::PatternMotif>,
+    },
     /// Replace the objects of symbol `index` (Edit Symbol): every
     /// instance draws the new ones. The symbol keeps its name. A
     /// definition that would draw an instance of the symbol itself, at
@@ -577,6 +582,7 @@ impl Command {
             Command::SetOpacityMask { .. } => "Opacity Mask",
             Command::SetRasterFx { .. } => "Effect",
             Command::AddSymbol { .. } => "New Symbol",
+            Command::SetPatternMotifs { .. } => "Pattern Motifs",
             Command::SetSymbolShape { .. } => "Edit Symbol",
             Command::MovePage { .. } => "Move Page",
             Command::DeleteLayer { .. } => "Delete Layer",
@@ -848,6 +854,9 @@ impl Command {
             }
             Command::AddSymbol { symbol } => {
                 doc.symbols.push(symbol.clone());
+            }
+            Command::SetPatternMotifs { motifs } => {
+                doc.pattern_motifs = Some(motifs.clone());
             }
             Command::SetSymbolShape { index, shape } => {
                 if *index >= doc.symbols.len() {

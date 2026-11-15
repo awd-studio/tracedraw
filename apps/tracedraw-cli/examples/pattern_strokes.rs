@@ -32,6 +32,47 @@ fn main() -> Result<(), Box<dyn Error>> {
         name: "Triangle marker".into(),
         shape: motif.clone(),
     });
+    let mut dot = Shape::new(
+        ShapeId(2),
+        ShapeKind::Ellipse {
+            rect: tracedraw_core::Rect::new(-1.5, -1.5, 1.5, 1.5),
+            arc: None,
+        },
+    );
+    dot.fill = Fill::Solid(Color::rgb8(30, 110, 220));
+    dot.stroke = None;
+    let mut chevron = BezPath::new();
+    chevron.move_to((-1.5, -1.0));
+    chevron.line_to((0.0, 1.0));
+    chevron.line_to((1.5, -1.0));
+    chevron.line_to((0.0, 0.0));
+    chevron.close_path();
+    let mut chevron = Shape::new(
+        ShapeId(3),
+        ShapeKind::Path {
+            path: chevron,
+            closed: true,
+        },
+    );
+    chevron.fill = Fill::Solid(Color::rgb8(220, 90, 25));
+    chevron.stroke = None;
+    doc.pattern_motifs = Some(vec![
+        tracedraw_core::pattern_stroke::PatternMotif {
+            name: "Triangle marker".into(),
+            shape: motif.clone(),
+            anchor: None,
+        },
+        tracedraw_core::pattern_stroke::PatternMotif {
+            name: "Blue dot".into(),
+            shape: dot,
+            anchor: None,
+        },
+        tracedraw_core::pattern_stroke::PatternMotif {
+            name: "Orange chevron".into(),
+            shape: chevron,
+            anchor: None,
+        },
+    ]);
     let mut ids = doc.ids().clone();
     for (row, spacing, offset, rotation) in [
         (85.0, 6.0, 0.0, 0.0),

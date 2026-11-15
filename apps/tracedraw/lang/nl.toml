@@ -9281,3 +9281,6 @@ media.pattern_follow = "Padrichting volgen" # mt
 media.pattern_reverse = "Richting omkeren" # mt
 media.pattern_hint = "Kies een opgeslagen motief, selecteer een kromme en pas toe. Grootte: langste zijde. Afstand: van midden tot midden. Bibliotheekwijzigingen veranderen bestaande streken niet." # mt
 media.pattern_spacing_desc = "Afstand van midden tot midden langs de kromme, in millimeters." # mt
+media.pattern_name = "Motiefnaam" # mt
+media.pattern_gallery = "Opgeslagen motieven" # mt
+media.pattern_empty = "Geen opgeslagen motieven. Selecteer een object en sla het op." # mt

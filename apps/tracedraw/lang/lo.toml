@@ -9281,3 +9281,6 @@ media.pattern_follow = "ຕາມທິດທາງເສັ້ນ" # mt
 media.pattern_reverse = "ປີ້ນທິດທາງ" # mt
 media.pattern_hint = "ເລືອກລວດລາຍທີ່ບັນທຶກແລະເສັ້ນໂຄ້ງແລ້ວນຳໃຊ້. ຂະໜາດແມ່ນດ້ານທີ່ຍາວທີ່ສຸດ. ໄລຍະຫ່າງວັດລະຫວ່າງຈຸດກາງ. ການແກ້ໄຂຄັງບໍ່ປ່ຽນເສັ້ນທີ່ມີແລ້ວ." # mt
 media.pattern_spacing_desc = "ໄລຍະລະຫວ່າງຈຸດກາງຕາມເສັ້ນໂຄ້ງ ເປັນມິນລີແມັດ." # mt
+media.pattern_name = "ຊື່ລວດລາຍ" # mt
+media.pattern_gallery = "ລວດລາຍທີ່ບັນທຶກ" # mt
+media.pattern_empty = "ຍັງບໍ່ມີລວດລາຍທີ່ບັນທຶກ. ເລືອກວັດຖຸແລະບັນທຶກ." # mt

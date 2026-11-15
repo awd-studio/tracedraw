@@ -9281,3 +9281,6 @@ media.pattern_follow = "اتباع اتجاه المسار" # mt
 media.pattern_reverse = "عكس الاتجاه" # mt
 media.pattern_hint = "اختر عنصراً محفوظاً ومنحنى ثم طبّق. الحجم هو أطول ضلع والتباعد بين المراكز. تعديل المكتبة لا يغيّر الحدود الحالية." # mt
 media.pattern_spacing_desc = "المسافة بين المراكز على طول المنحنى بالمليمتر." # mt
+media.pattern_name = "اسم العنصر الزخرفي" # mt
+media.pattern_gallery = "العناصر الزخرفية المحفوظة" # mt
+media.pattern_empty = "لا توجد عناصر محفوظة. حدد كائناً واحفظه." # mt

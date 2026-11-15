@@ -9281,3 +9281,6 @@ media.pattern_follow = "Yol yönünü izle" # mt
 media.pattern_reverse = "Yönü ters çevir" # mt
 media.pattern_hint = "Kayıtlı motif ve eğri seçip uygulayın. Boyut en uzun kenardır, aralık merkezler arasındadır. Kitaplık düzenlemeleri mevcut çizgileri değiştirmez." # mt
 media.pattern_spacing_desc = "Eğri boyunca merkezler arası uzaklık, milimetre cinsinden." # mt
+media.pattern_name = "Motif adı" # mt
+media.pattern_gallery = "Kayıtlı motifler" # mt
+media.pattern_empty = "Kayıtlı motif yok. Bir nesne seçip kaydedin." # mt

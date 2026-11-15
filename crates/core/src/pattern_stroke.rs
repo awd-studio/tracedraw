@@ -45,6 +45,16 @@ impl Default for PatternOptions {
     }
 }
 
+/// A named reusable motif and its placement origin. Library entries are
+/// independent snapshots, so removing one does not change existing strokes.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PatternMotif {
+    pub name: String,
+    pub shape: Shape,
+    #[serde(default)]
+    pub anchor: Option<Point>,
+}
+
 /// Original imported placements, retained while guide and settings are unchanged.
 /// Editing the guide or any parameter regenerates copies from the motif instead.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -245,6 +255,40 @@ mod tests {
                 closed: false,
             },
         )
+    }
+
+    #[test]
+    fn pattern_motif_library_is_undoable_and_keeps_an_explicit_empty_library() {
+        let mut doc = Document::new("Motifs", Size::new(100.0, 100.0));
+        doc.symbols.push(crate::Symbol {
+            name: "Legacy symbol".into(),
+            shape: motif(),
+        });
+        let mut engine = crate::Engine::new(doc);
+        let entry = PatternMotif {
+            name: "Marker".into(),
+            shape: motif(),
+            anchor: Some(Point::ZERO),
+        };
+        engine
+            .run(&crate::Command::SetPatternMotifs {
+                motifs: vec![entry.clone()],
+            })
+            .unwrap();
+        let back = Document::from_json(&engine.document().to_json().unwrap()).unwrap();
+        assert_eq!(back.pattern_motifs, Some(vec![entry]));
+        engine
+            .run(&crate::Command::SetPatternMotifs { motifs: Vec::new() })
+            .unwrap();
+        let back = Document::from_json(&engine.document().to_json().unwrap()).unwrap();
+        assert_eq!(back.pattern_motifs, Some(Vec::new()));
+        assert_eq!(back.symbols.len(), 1);
+        engine.undo().unwrap();
+        assert_eq!(engine.document().pattern_motifs.as_ref().unwrap().len(), 1);
+        engine.undo().unwrap();
+        assert!(engine.document().pattern_motifs.is_none());
+        engine.redo().unwrap();
+        assert_eq!(engine.document().pattern_motifs.as_ref().unwrap().len(), 1);
     }
 
     #[test]

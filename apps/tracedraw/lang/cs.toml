@@ -9281,3 +9281,6 @@ media.pattern_follow = "Sledovat směr cesty" # mt
 media.pattern_reverse = "Obrátit směr" # mt
 media.pattern_hint = "Vyberte uložený motiv a křivku a použijte. Velikost: nejdelší strana. Rozestup: mezi středy. Úpravy knihovny nemění existující tahy." # mt
 media.pattern_spacing_desc = "Vzdálenost mezi středy podél křivky v milimetrech." # mt
+media.pattern_name = "Název motivu" # mt
+media.pattern_gallery = "Uložené motivy" # mt
+media.pattern_empty = "Žádné uložené motivy. Vyberte objekt a uložte jej." # mt

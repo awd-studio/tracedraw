@@ -9281,3 +9281,6 @@ media.pattern_follow = "পথের দিক অনুসরণ করুন" 
 media.pattern_reverse = "দিক উল্টান" # mt
 media.pattern_hint = "সংরক্ষিত মোটিফ ও বক্ররেখা বেছে প্রয়োগ করুন। আকার দীর্ঘতম বাহু, ব্যবধান কেন্দ্র থেকে কেন্দ্রে। লাইব্রেরি সম্পাদনা বিদ্যমান স্ট্রোক বদলায় না।" # mt
 media.pattern_spacing_desc = "বক্ররেখা বরাবর কেন্দ্রগুলোর দূরত্ব, মিলিমিটারে।" # mt
+media.pattern_name = "মোটিফের নাম" # mt
+media.pattern_gallery = "সংরক্ষিত মোটিফ" # mt
+media.pattern_empty = "কোনো মোটিফ সংরক্ষিত নেই। একটি বস্তু বেছে সংরক্ষণ করুন।" # mt
