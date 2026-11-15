@@ -9264,3 +9264,20 @@ convert.level_warn = "Läuft, aber etwas bewirkt nichts oder fehlt hier vielleic
 convert.level_error = "Etwas darin ist hier nicht verfügbar." # mt
 convert.no_issues = "Nichts zu ändern: alle Makros laufen unverändert." # mt
 convert.goto_hint = "Zu dieser Zeile springen." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Musterstrich" # mt
+media.pattern_stroke_desc = "Ein gespeichertes Vektormotiv entlang einer bearbeitbaren Kurve wiederholen." # mt
+media.pattern_motif = "Motiv" # mt
+media.pattern_save = "Auswahl als Motiv speichern" # mt
+media.pattern_save_desc = "Einfache Vektorobjekte in diesem Dokument speichern. Text und Effekte zuerst in Kurven umwandeln." # mt
+media.pattern_load = "Ausgewählten Strich laden" # mt
+media.pattern_load_desc = "Motiv und Einstellungen laden, dann mit Auf Kurve anwenden bestätigen." # mt
+media.pattern_start = "Startabstand" # mt
+media.pattern_end = "Endabstand" # mt
+media.pattern_offset = "Seitlicher Versatz" # mt
+media.pattern_rotation = "Drehung" # mt
+media.pattern_follow = "Pfadrichtung folgen" # mt
+media.pattern_reverse = "Richtung umkehren" # mt
+media.pattern_hint = "Gespeichertes Motiv wählen, Kurve auswählen und anwenden. Größe: längste Motivseite. Abstand: Mitte zu Mitte. Bibliotheksänderungen ändern vorhandene Striche nicht." # mt
+media.pattern_spacing_desc = "Abstand zwischen den Mittelpunkten entlang der Kurve in Millimetern." # mt

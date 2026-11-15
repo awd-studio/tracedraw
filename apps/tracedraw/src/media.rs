@@ -17,16 +17,18 @@ pub enum MediaMode {
     Preset,
     Brush,
     Sprayer,
+    Pattern,
     #[default]
     Calligraphic,
     Expression,
 }
 
 impl MediaMode {
-    pub const ALL: [MediaMode; 5] = [
+    pub const ALL: [MediaMode; 6] = [
         MediaMode::Preset,
         MediaMode::Brush,
         MediaMode::Sprayer,
+        MediaMode::Pattern,
         MediaMode::Calligraphic,
         MediaMode::Expression,
     ];
@@ -35,6 +37,7 @@ impl MediaMode {
             MediaMode::Preset => "media.preset",
             MediaMode::Brush => "media.brush",
             MediaMode::Sprayer => "media.sprayer",
+            MediaMode::Pattern => "media.pattern_stroke",
             MediaMode::Calligraphic => "media.calligraphic",
             MediaMode::Expression => "media.expression",
         }
@@ -130,6 +133,88 @@ fn spray_object(preset: usize, c: Point, size: f64, k: usize) -> BezPath {
 }
 
 impl App {
+    /// A snapshot of plain selected vector objects, suitable for a reusable motif.
+    pub fn selected_pattern_motif(&self) -> Option<Shape> {
+        let selected = self.selected_rc();
+        if selected.is_empty()
+            || !selected
+                .iter()
+                .all(tracedraw_core::pattern_stroke::valid_motif)
+        {
+            return None;
+        }
+        let motif = if selected.len() == 1 {
+            selected.first()?.clone()
+        } else {
+            Shape::new(
+                tracedraw_core::ShapeId(0),
+                ShapeKind::Group {
+                    children: selected.as_ref().clone(),
+                },
+            )
+        };
+        tracedraw_core::pattern_stroke::valid_motif(&motif).then_some(motif)
+    }
+
+    /// Store a motif in the document's existing symbol library, without replacing
+    /// the selected objects. Library entries and strokes keep independent snapshots.
+    pub fn save_pattern_motif(&mut self) {
+        let Some(motif) = self
+            .selected_pattern_motif()
+            .or_else(|| self.media_motif.clone())
+        else {
+            return;
+        };
+        let name = motif
+            .name
+            .clone()
+            .unwrap_or_else(|| crate::i18n::tr("media.pattern_motif"));
+        let command = Command::AddSymbol {
+            symbol: tracedraw_core::Symbol {
+                name,
+                shape: motif.clone(),
+            },
+        };
+        if self.engine.run(&command).is_ok() {
+            self.media_motif = Some(motif);
+        }
+    }
+
+    pub fn pattern_stroke_effect(&self) -> Option<tracedraw_core::live::Effect> {
+        let motif = self.media_motif.as_ref()?;
+        if !tracedraw_core::pattern_stroke::valid_motif(motif) {
+            return None;
+        }
+        let mut options = self.media_pattern.clone();
+        options.size = self.media_width;
+        Some(tracedraw_core::live::Effect::PatternStroke {
+            motif: Box::new(motif.clone()),
+            options,
+            original: self.media_pattern_original.clone(),
+        })
+    }
+
+    /// Load a selected live stroke into the panel; Apply to curve commits edits.
+    pub fn load_pattern_stroke(&mut self) {
+        let effect = self.selected_rc().iter().find_map(|s| {
+            s.effects.iter().find_map(|e| match e {
+                tracedraw_core::live::Effect::PatternStroke {
+                    motif,
+                    options,
+                    original,
+                } => Some(((**motif).clone(), options.clone(), original.clone())),
+                _ => None,
+            })
+        });
+        if let Some((motif, options, original)) = effect {
+            self.media_mode = MediaMode::Pattern;
+            self.media_width = options.size;
+            self.media_motif = Some(motif);
+            self.media_pattern = options;
+            self.media_pattern_original = original;
+        }
+    }
+
     /// Geometry for a stroke in the current media mode. Returns shapes to
     /// add (several for the sprayer).
     pub fn media_shapes(&mut self, points: &[Point]) -> Vec<Shape> {
@@ -147,6 +232,23 @@ impl App {
             tracedraw_core::geometry::simplify(points, 0.1 + self.media_smoothing / 100.0 * 1.5);
         if pts.len() < 2 {
             return Vec::new();
+        }
+        if self.media_mode == MediaMode::Pattern {
+            let Some(effect) = self.pattern_stroke_effect() else {
+                return Vec::new();
+            };
+            let id = self.engine.new_shape_id();
+            let mut shape = Shape::new(
+                id,
+                ShapeKind::Path {
+                    path: tracedraw_core::geometry::smooth_path(&pts, false),
+                    closed: false,
+                },
+            );
+            shape.fill = Fill::None;
+            shape.stroke = None;
+            shape.effects.push(effect);
+            return vec![shape];
         }
         let color = match &self.default_stroke() {
             Some(st) => st.color,
@@ -301,7 +403,7 @@ impl App {
                 };
                 st.widths = widths(EXPRESSION_NODES, &at_point);
             }
-            MediaMode::Sprayer => return None,
+            MediaMode::Sprayer | MediaMode::Pattern => return None,
         }
         Some(st)
     }
@@ -314,6 +416,7 @@ impl App {
             MediaMode::Brush => "Brush stroke",
             MediaMode::Expression => "Expression stroke",
             MediaMode::Sprayer => "Sprayed object",
+            MediaMode::Pattern => "Pattern stroke",
         }
     }
 
@@ -331,6 +434,21 @@ impl App {
         let mut cmds = Vec::new();
         let mut new_sel = Vec::new();
         for c in curves {
+            if self.media_mode == MediaMode::Pattern {
+                let Some(effect) = self.pattern_stroke_effect() else {
+                    continue;
+                };
+                let mut effects = c.effects.clone();
+                effects
+                    .retain(|e| !matches!(e, tracedraw_core::live::Effect::PatternStroke { .. }));
+                effects.push(effect);
+                cmds.push(Command::SetEffects {
+                    shape: c.id,
+                    effects,
+                });
+                new_sel.push(c.id);
+                continue;
+            }
             // The curve keeps its nodes and takes the brush as its outline.
             let color = c.stroke.as_ref().map_or(Color::BLACK, |st| st.color);
             let pts = tracedraw_core::effects::resample(&c.page_path(), 120);
@@ -361,6 +479,86 @@ impl App {
 mod tests {
     use super::*;
     use tracedraw_core::geometry::Shape as _;
+
+    #[test]
+    fn pattern_stroke_apply_edit_and_undo_keep_the_guide() {
+        let mut app = App::headless();
+        let id = app
+            .new_shape(ShapeKind::Path {
+                path: spray_object(2, Point::ZERO, 4.0, 0),
+                closed: true,
+            })
+            .unwrap();
+        app.select(vec![id]);
+        app.save_pattern_motif();
+        assert_eq!(app.doc().symbols.len(), 1);
+        let mut path = BezPath::new();
+        path.move_to((10.0, 10.0));
+        path.line_to((50.0, 10.0));
+        let guide = app
+            .new_shape(ShapeKind::Path {
+                path: path.clone(),
+                closed: false,
+            })
+            .unwrap();
+        app.select(vec![guide]);
+        app.media_mode = MediaMode::Pattern;
+        app.apply_media_to_selection();
+        let shape = app.doc().find_shape(guide).unwrap().clone();
+        assert_eq!(app.selection, vec![guide]);
+        assert!(matches!(&shape.kind, ShapeKind::Path { path: p, .. } if *p == path));
+        assert_eq!(tracedraw_core::live::evaluate(&shape).above.len(), 6);
+        // Load after changing the tool defaults, then commit a new spacing.
+        app.media_width = 20.0;
+        app.load_pattern_stroke();
+        assert_eq!(app.media_width, 3.0);
+        // A loaded stroke's motif can be saved without dismantling the stroke.
+        app.save_pattern_motif();
+        assert_eq!(app.doc().symbols.len(), 2);
+        app.media_pattern.spacing = 10.0;
+        app.apply_media_to_selection();
+        let shape = app.doc().find_shape(guide).unwrap();
+        assert_eq!(shape.effects.len(), 1);
+        assert_eq!(tracedraw_core::live::evaluate(shape).above.len(), 5);
+        app.engine.undo().unwrap();
+        assert_eq!(
+            tracedraw_core::live::evaluate(app.doc().find_shape(guide).unwrap())
+                .above
+                .len(),
+            6
+        );
+        app.engine.redo().unwrap();
+        assert_eq!(
+            tracedraw_core::live::evaluate(app.doc().find_shape(guide).unwrap())
+                .above
+                .len(),
+            5
+        );
+    }
+
+    #[test]
+    fn pattern_stroke_freehand_and_missing_motif_are_safe() {
+        let mut app = App::headless();
+        app.media_mode = MediaMode::Pattern;
+        let points = [Point::new(10.0, 10.0), Point::new(50.0, 10.0)];
+        assert!(app.media_shapes(&points).is_empty());
+        let mut motif = Shape::new(
+            tracedraw_core::ShapeId(0),
+            ShapeKind::Path {
+                path: spray_object(2, Point::ZERO, 4.0, 0),
+                closed: true,
+            },
+        );
+        motif.stroke = None;
+        app.media_motif = Some(motif);
+        let shapes = app.media_shapes(&points);
+        assert_eq!(shapes.len(), 1);
+        assert_eq!(tracedraw_core::live::evaluate(&shapes[0]).above.len(), 6);
+        app.tool = crate::tools::Tool::BrushStrokes;
+        crate::i18n::with_thread_language("en", || {
+            assert!(bar_texts(&mut app).contains(&"Pattern stroke".to_string()));
+        });
+    }
 
     /// The texts the property bar draws.
     fn bar_texts(app: &mut App) -> Vec<String> {

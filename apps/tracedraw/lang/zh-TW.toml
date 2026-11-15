@@ -9264,3 +9264,20 @@ convert.level_warn = "可以執行,但有內容沒有作用或此處可能不存
 convert.level_error = "其中有內容在此處無法使用。" # mt
 convert.no_issues = "不需變更:所有巨集都可直接執行。" # mt
 convert.goto_hint = "跳至這一行。" # mt
+
+# Live pattern strokes
+media.pattern_stroke = "圖案筆畫" # mt
+media.pattern_stroke_desc = "沿可編輯曲線重複已儲存的向量圖案。" # mt
+media.pattern_motif = "圖案" # mt
+media.pattern_save = "將選取範圍儲存為圖案" # mt
+media.pattern_save_desc = "在此文件中儲存簡單向量物件。請先將文字和效果轉換為曲線。" # mt
+media.pattern_load = "載入所選筆畫" # mt
+media.pattern_load_desc = "載入圖案和設定，然後套用至曲線以確認變更。" # mt
+media.pattern_start = "起點距離" # mt
+media.pattern_end = "終點距離" # mt
+media.pattern_offset = "側向位移" # mt
+media.pattern_rotation = "旋轉" # mt
+media.pattern_follow = "跟隨路徑方向" # mt
+media.pattern_reverse = "反轉方向" # mt
+media.pattern_hint = "選擇已儲存圖案，選取曲線並套用。大小為圖案最長邊，間距為中心間距。編輯圖庫不會變更現有筆畫。" # mt
+media.pattern_spacing_desc = "沿曲線的中心間距，單位為毫米。" # mt

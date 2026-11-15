@@ -9264,3 +9264,20 @@ convert.level_warn = "Работает, но что-то ничего не де�
 convert.level_error = "Что-то в нём здесь недоступно." # mt
 convert.no_issues = "Менять нечего: все макросы работают как есть." # mt
 convert.goto_hint = "Перейти к этой строке." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Штрих из мотивов" # mt
+media.pattern_stroke_desc = "Повторять сохранённый векторный мотив вдоль редактируемой кривой." # mt
+media.pattern_motif = "Мотив" # mt
+media.pattern_save = "Сохранить выделение как мотив" # mt
+media.pattern_save_desc = "Сохранить простые векторные объекты в документе. Сначала преобразуйте текст и эффекты в кривые." # mt
+media.pattern_load = "Загрузить выбранный штрих" # mt
+media.pattern_load_desc = "Загрузить мотив и параметры, затем применить к кривой для подтверждения." # mt
+media.pattern_start = "Отступ от начала" # mt
+media.pattern_end = "Отступ от конца" # mt
+media.pattern_offset = "Боковое смещение" # mt
+media.pattern_rotation = "Поворот" # mt
+media.pattern_follow = "Следовать направлению пути" # mt
+media.pattern_reverse = "Обратить направление" # mt
+media.pattern_hint = "Выберите сохранённый мотив и кривую и примените. Размер: наибольшая сторона. Интервал: между центрами. Изменения библиотеки не меняют существующие штрихи." # mt
+media.pattern_spacing_desc = "Расстояние между центрами вдоль кривой в миллиметрах." # mt

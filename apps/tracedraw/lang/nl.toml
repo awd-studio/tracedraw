@@ -9264,3 +9264,20 @@ convert.level_warn = "Werkt, maar iets doet niets of ontbreekt hier misschien." 
 convert.level_error = "Iets hierin is hier niet beschikbaar." # mt
 convert.no_issues = "Niets te wijzigen: alle macro's werken zoals ze zijn." # mt
 convert.goto_hint = "Naar deze regel gaan." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Patroonstreek" # mt
+media.pattern_stroke_desc = "Herhaal een opgeslagen vectormotief langs een bewerkbare kromme." # mt
+media.pattern_motif = "Motief" # mt
+media.pattern_save = "Selectie als motief opslaan" # mt
+media.pattern_save_desc = "Sla eenvoudige vectorobjecten in dit document op. Zet tekst en effecten eerst om naar krommen." # mt
+media.pattern_load = "Geselecteerde streek laden" # mt
+media.pattern_load_desc = "Laad motief en instellingen en pas toe op de kromme om te bevestigen." # mt
+media.pattern_start = "Beginafstand" # mt
+media.pattern_end = "Eindafstand" # mt
+media.pattern_offset = "Zijwaartse afstand" # mt
+media.pattern_rotation = "Rotatie" # mt
+media.pattern_follow = "Padrichting volgen" # mt
+media.pattern_reverse = "Richting omkeren" # mt
+media.pattern_hint = "Kies een opgeslagen motief, selecteer een kromme en pas toe. Grootte: langste zijde. Afstand: van midden tot midden. Bibliotheekwijzigingen veranderen bestaande streken niet." # mt
+media.pattern_spacing_desc = "Afstand van midden tot midden langs de kromme, in millimeters." # mt

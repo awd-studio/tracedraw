@@ -2240,6 +2240,7 @@ fn brush_strokes(app: &mut App, ui: &mut Ui) {
                 "docker.spray_spacing_desc",
             ));
         }
+        crate::media::MediaMode::Pattern => pattern_stroke_controls(app, ui),
         crate::media::MediaMode::Expression => {
             ui.add(
                 crate::ui::Slider::new(&mut app.media_pressure, 0.0..=1.0)
@@ -2275,6 +2276,112 @@ fn brush_strokes(app: &mut App, ui: &mut Ui) {
         app.apply_media_to_selection();
     }
     dim(ui, tr("docker.brush_strokes_hint"));
+}
+
+/// Reusable motif snapshots and the live stroke's placement parameters.
+fn pattern_stroke_controls(app: &mut App, ui: &mut Ui) {
+    let selected = app.selected_rc();
+    let can_save = (!selected.is_empty()
+        && selected
+            .iter()
+            .all(tracedraw_core::pattern_stroke::valid_motif))
+        || app.media_motif.is_some();
+    if ui
+        .add_enabled(can_save, egui::Button::new(tr("media.pattern_save")))
+        .rich_tip(tr("media.pattern_save_desc"))
+        .clicked()
+    {
+        app.save_pattern_motif();
+    }
+    let motifs: Vec<_> = app
+        .doc()
+        .symbols
+        .iter()
+        .enumerate()
+        .filter(|(_, s)| tracedraw_core::pattern_stroke::valid_motif(&s.shape))
+        .map(|(i, s)| {
+            (
+                i,
+                s.name.clone(),
+                app.media_motif.as_ref() == Some(&s.shape),
+            )
+        })
+        .collect();
+    let shown = motifs
+        .iter()
+        .find(|(_, _, selected)| *selected)
+        .map(|(_, name, _)| name.clone())
+        .or_else(|| app.media_motif.as_ref().and_then(|s| s.name.clone()))
+        .unwrap_or_else(|| tr("media.pattern_motif"));
+    let mut chosen = None;
+    crate::ui::keynav::ComboBox::from_id_salt("pattern_motif")
+        .selected_text(shown)
+        .show_ui(ui, |ui| {
+            for (index, name, selected) in motifs {
+                if ui.selectable_label(selected, name).clicked() {
+                    chosen = Some(index);
+                }
+            }
+        });
+    if let Some(motif) = chosen
+        .and_then(|i| app.doc().symbols.get(i))
+        .map(|s| s.shape.clone())
+    {
+        app.media_motif = Some(motif);
+    }
+    let has_pattern = selected.iter().any(|s| {
+        s.effects
+            .iter()
+            .any(|e| matches!(e, Effect::PatternStroke { .. }))
+    });
+    if ui
+        .add_enabled(has_pattern, egui::Button::new(tr("media.pattern_load")))
+        .rich_tip(tr("media.pattern_load_desc"))
+        .clicked()
+    {
+        app.load_pattern_stroke();
+    }
+    let u = app.units;
+    for (key, value, negative) in [
+        ("docker.spacing", &mut app.media_pattern.spacing, false),
+        ("media.pattern_start", &mut app.media_pattern.start, false),
+        ("media.pattern_end", &mut app.media_pattern.end, false),
+        ("media.pattern_offset", &mut app.media_pattern.offset, true),
+    ] {
+        let mut shown = u.from_mm(*value);
+        ui.horizontal(|ui| {
+            ui.label(tr(key));
+            if ui
+                .add(
+                    crate::ui::field::NumField::new(&mut shown).range(if negative {
+                        -u.from_mm(1000.0)..=u.from_mm(1000.0)
+                    } else {
+                        0.0..=u.from_mm(1000.0)
+                    }),
+                )
+                .changed()
+            {
+                *value = u.to_mm(shown);
+                if key == "docker.spacing" {
+                    *value = value.max(0.1);
+                }
+            }
+        });
+    }
+    ui.horizontal(|ui| {
+        ui.label(tr("media.pattern_rotation"));
+        ui.add(
+            crate::ui::field::NumField::new(&mut app.media_pattern.rotation)
+                .range(-360.0..=360.0)
+                .suffix("°"),
+        );
+    });
+    ui.checkbox(
+        &mut app.media_pattern.follow_tangent,
+        tr("media.pattern_follow"),
+    );
+    ui.checkbox(&mut app.media_pattern.reverse, tr("media.pattern_reverse"));
+    dim(ui, tr("media.pattern_hint"));
 }
 
 /// A square icon button drawn by `paint`, with its tip.

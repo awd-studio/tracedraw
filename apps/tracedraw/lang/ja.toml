@@ -9264,3 +9264,20 @@ convert.level_warn = "動きますが、何もしないものかここにない�
 convert.level_error = "ここで使えないものが含まれます。" # mt
 convert.no_issues = "変更は不要です: すべてのマクロがそのまま動きます。" # mt
 convert.goto_hint = "この行へ移動。" # mt
+
+# Live pattern strokes
+media.pattern_stroke = "パターンストローク" # mt
+media.pattern_stroke_desc = "保存したベクターモチーフを編集可能な曲線に沿って繰り返します。" # mt
+media.pattern_motif = "モチーフ" # mt
+media.pattern_save = "選択範囲をモチーフとして保存" # mt
+media.pattern_save_desc = "単純なベクターオブジェクトをこの文書に保存します。文字と効果は先に曲線に変換してください。" # mt
+media.pattern_load = "選択したストロークを読み込む" # mt
+media.pattern_load_desc = "モチーフと設定を読み込み、曲線に適用して変更を確定します。" # mt
+media.pattern_start = "始点からの距離" # mt
+media.pattern_end = "終点からの距離" # mt
+media.pattern_offset = "横方向のオフセット" # mt
+media.pattern_rotation = "回転" # mt
+media.pattern_follow = "パスの方向に沿う" # mt
+media.pattern_reverse = "方向を反転" # mt
+media.pattern_hint = "保存したモチーフと曲線を選び適用します。サイズは最長辺、間隔は中心間の距離です。ライブラリの編集は既存のストロークに影響しません。" # mt
+media.pattern_spacing_desc = "曲線に沿った中心間の距離、単位はミリメートル。" # mt

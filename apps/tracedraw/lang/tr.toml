@@ -9264,3 +9264,20 @@ convert.level_warn = "Çalışır, ama bir şey etkisiz ya da burada olmayabilir
 convert.level_error = "İçindeki bir şey burada yok." # mt
 convert.no_issues = "Değişecek bir şey yok: tüm makrolar olduğu gibi çalışır." # mt
 convert.goto_hint = "Bu satıra git." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Desen çizgisi" # mt
+media.pattern_stroke_desc = "Kaydedilmiş bir vektör motifini düzenlenebilir eğri boyunca tekrarlayın." # mt
+media.pattern_motif = "Motif" # mt
+media.pattern_save = "Seçimi motif olarak kaydet" # mt
+media.pattern_save_desc = "Basit vektör nesnelerini bu belgede kaydedin. Önce metin ve efektleri eğrilere dönüştürün." # mt
+media.pattern_load = "Seçili çizgiyi yükle" # mt
+media.pattern_load_desc = "Motifi ve ayarları yükleyin, ardından değişiklikleri onaylamak için eğriye uygulayın." # mt
+media.pattern_start = "Başlangıç uzaklığı" # mt
+media.pattern_end = "Bitiş uzaklığı" # mt
+media.pattern_offset = "Yanal uzaklık" # mt
+media.pattern_rotation = "Döndürme" # mt
+media.pattern_follow = "Yol yönünü izle" # mt
+media.pattern_reverse = "Yönü ters çevir" # mt
+media.pattern_hint = "Kayıtlı motif ve eğri seçip uygulayın. Boyut en uzun kenardır, aralık merkezler arasındadır. Kitaplık düzenlemeleri mevcut çizgileri değiştirmez." # mt
+media.pattern_spacing_desc = "Eğri boyunca merkezler arası uzaklık, milimetre cinsinden." # mt

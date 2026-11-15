@@ -9264,3 +9264,20 @@ convert.level_warn = "Działa, ale coś nic nie robi lub może tu nie istnieć."
 convert.level_error = "Coś w nim jest tu niedostępne." # mt
 convert.no_issues = "Nic do zmiany: wszystkie makra działają bez zmian." # mt
 convert.goto_hint = "Przejdź do tego wiersza." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Obrys z motywów" # mt
+media.pattern_stroke_desc = "Powtarzaj zapisany motyw wektorowy wzdłuż edytowalnej krzywej." # mt
+media.pattern_motif = "Motyw" # mt
+media.pattern_save = "Zapisz zaznaczenie jako motyw" # mt
+media.pattern_save_desc = "Zapisz proste obiekty wektorowe w dokumencie. Najpierw zamień tekst i efekty na krzywe." # mt
+media.pattern_load = "Wczytaj zaznaczony obrys" # mt
+media.pattern_load_desc = "Wczytaj motyw i ustawienia, a następnie zastosuj do krzywej, aby zatwierdzić." # mt
+media.pattern_start = "Odstęp od początku" # mt
+media.pattern_end = "Odstęp od końca" # mt
+media.pattern_offset = "Przesunięcie boczne" # mt
+media.pattern_rotation = "Obrót" # mt
+media.pattern_follow = "Podążaj za kierunkiem ścieżki" # mt
+media.pattern_reverse = "Odwróć kierunek" # mt
+media.pattern_hint = "Wybierz zapisany motyw, zaznacz krzywą i zastosuj. Rozmiar: najdłuższy bok. Odstęp: między środkami. Zmiany biblioteki nie zmieniają istniejących obrysów." # mt
+media.pattern_spacing_desc = "Odległość między środkami wzdłuż krzywej w milimetrach." # mt

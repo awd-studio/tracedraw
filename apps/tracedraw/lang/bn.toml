@@ -9264,3 +9264,20 @@ convert.level_warn = "চলে, তবে কিছু প্রভাবহী
 convert.level_error = "এতে এমন কিছু আছে যা এখানে পাওয়া যায় না।" # mt
 convert.no_issues = "বদলানোর কিছু নেই: সব ম্যাক্রো যেমন আছে চলে।" # mt
 convert.goto_hint = "এই লাইনে যান।" # mt
+
+# Live pattern strokes
+media.pattern_stroke = "প্যাটার্ন স্ট্রোক" # mt
+media.pattern_stroke_desc = "সম্পাদনাযোগ্য বক্ররেখা বরাবর সংরক্ষিত ভেক্টর মোটিফ পুনরাবৃত্তি করুন।" # mt
+media.pattern_motif = "মোটিফ" # mt
+media.pattern_save = "নির্বাচন মোটিফ হিসেবে সংরক্ষণ করুন" # mt
+media.pattern_save_desc = "এই নথিতে সাধারণ ভেক্টর বস্তু সংরক্ষণ করুন। আগে লেখা ও প্রভাবকে বক্ররেখায় রূপান্তর করুন।" # mt
+media.pattern_load = "নির্বাচিত স্ট্রোক লোড করুন" # mt
+media.pattern_load_desc = "মোটিফ ও সেটিং লোড করুন, তারপর পরিবর্তন নিশ্চিত করতে বক্ররেখায় প্রয়োগ করুন।" # mt
+media.pattern_start = "শুরু থেকে দূরত্ব" # mt
+media.pattern_end = "শেষ থেকে দূরত্ব" # mt
+media.pattern_offset = "পার্শ্ব সরণ" # mt
+media.pattern_rotation = "ঘূর্ণন" # mt
+media.pattern_follow = "পথের দিক অনুসরণ করুন" # mt
+media.pattern_reverse = "দিক উল্টান" # mt
+media.pattern_hint = "সংরক্ষিত মোটিফ ও বক্ররেখা বেছে প্রয়োগ করুন। আকার দীর্ঘতম বাহু, ব্যবধান কেন্দ্র থেকে কেন্দ্রে। লাইব্রেরি সম্পাদনা বিদ্যমান স্ট্রোক বদলায় না।" # mt
+media.pattern_spacing_desc = "বক্ররেখা বরাবর কেন্দ্রগুলোর দূরত্ব, মিলিমিটারে।" # mt

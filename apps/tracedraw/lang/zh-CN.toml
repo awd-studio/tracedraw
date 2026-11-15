@@ -9264,3 +9264,20 @@ convert.level_warn = "可以运行,但有内容不起作用或此处可能不存
 convert.level_error = "其中有内容在此处不可用。" # mt
 convert.no_issues = "无需更改:所有宏都可直接运行。" # mt
 convert.goto_hint = "跳到这一行。" # mt
+
+# Live pattern strokes
+media.pattern_stroke = "图案笔画" # mt
+media.pattern_stroke_desc = "沿可编辑曲线重复已保存的矢量图案。" # mt
+media.pattern_motif = "图案" # mt
+media.pattern_save = "将选区保存为图案" # mt
+media.pattern_save_desc = "在本文档中保存简单矢量对象。请先将文字和效果转换为曲线。" # mt
+media.pattern_load = "加载所选笔画" # mt
+media.pattern_load_desc = "加载图案和设置，然后应用到曲线以确认更改。" # mt
+media.pattern_start = "起点距离" # mt
+media.pattern_end = "终点距离" # mt
+media.pattern_offset = "侧向偏移" # mt
+media.pattern_rotation = "旋转" # mt
+media.pattern_follow = "跟随路径方向" # mt
+media.pattern_reverse = "反转方向" # mt
+media.pattern_hint = "选择已保存图案，选择曲线并应用。大小为图案最长边，间距为中心间距。编辑图库不会更改现有笔画。" # mt
+media.pattern_spacing_desc = "沿曲线的中心间距，单位为毫米。" # mt

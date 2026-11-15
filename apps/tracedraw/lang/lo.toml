@@ -9264,3 +9264,20 @@ convert.level_warn = "ແລ່ນໄດ້ ແຕ່ບາງຢ່າງບໍ
 convert.level_error = "ມີບາງຢ່າງໃນນີ້ທີ່ບໍ່ມີຢູ່ນີ້." # mt
 convert.no_issues = "ບໍ່ມີຫຍັງຕ້ອງປ່ຽນ: ທຸກມາໂຄຣແລ່ນໄດ້ຕາມເດີມ." # mt
 convert.goto_hint = "ໄປທີ່ແຖວນີ້." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "ເສັ້ນລວດລາຍ" # mt
+media.pattern_stroke_desc = "ເຮັດລວດລາຍເວັກເຕີທີ່ບັນທຶກໄວ້ຊ້ຳຕາມເສັ້ນໂຄ້ງທີ່ແກ້ໄຂໄດ້." # mt
+media.pattern_motif = "ລວດລາຍ" # mt
+media.pattern_save = "ບັນທຶກສິ່ງທີ່ເລືອກເປັນລວດລາຍ" # mt
+media.pattern_save_desc = "ບັນທຶກວັດຖຸເວັກເຕີທຳມະດາໃນເອກະສານນີ້. ປ່ຽນຂໍ້ຄວາມແລະເອັບເຟັກເປັນເສັ້ນໂຄ້ງກ່ອນ." # mt
+media.pattern_load = "ໂຫຼດເສັ້ນທີ່ເລືອກ" # mt
+media.pattern_load_desc = "ໂຫຼດລວດລາຍແລະການຕັ້ງຄ່າ ແລ້ວນຳໃຊ້ກັບເສັ້ນໂຄ້ງເພື່ອຢືນຢັນ." # mt
+media.pattern_start = "ໄລຍະຈາກຈຸດເລີ່ມ" # mt
+media.pattern_end = "ໄລຍະຈາກຈຸດສິ້ນສຸດ" # mt
+media.pattern_offset = "ໄລຍະຫ່າງດ້ານຂ້າງ" # mt
+media.pattern_rotation = "ການໝຸນ" # mt
+media.pattern_follow = "ຕາມທິດທາງເສັ້ນ" # mt
+media.pattern_reverse = "ປີ້ນທິດທາງ" # mt
+media.pattern_hint = "ເລືອກລວດລາຍທີ່ບັນທຶກແລະເສັ້ນໂຄ້ງແລ້ວນຳໃຊ້. ຂະໜາດແມ່ນດ້ານທີ່ຍາວທີ່ສຸດ. ໄລຍະຫ່າງວັດລະຫວ່າງຈຸດກາງ. ການແກ້ໄຂຄັງບໍ່ປ່ຽນເສັ້ນທີ່ມີແລ້ວ." # mt
+media.pattern_spacing_desc = "ໄລຍະລະຫວ່າງຈຸດກາງຕາມເສັ້ນໂຄ້ງ ເປັນມິນລີແມັດ." # mt

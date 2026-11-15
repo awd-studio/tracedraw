@@ -9264,3 +9264,20 @@ convert.level_warn = "Funziona, ma qualcosa non fa nulla o qui potrebbe mancare.
 convert.level_error = "Qualcosa qui non è disponibile." # mt
 convert.no_issues = "Niente da cambiare: tutte le macro funzionano così come sono." # mt
 convert.goto_hint = "Vai a questa riga." # mt
+
+# Live pattern strokes
+media.pattern_stroke = "Tratto a motivi" # mt
+media.pattern_stroke_desc = "Ripeti un motivo vettoriale salvato lungo una curva modificabile." # mt
+media.pattern_motif = "Motivo" # mt
+media.pattern_save = "Salva selezione come motivo" # mt
+media.pattern_save_desc = "Salva oggetti vettoriali semplici nel documento. Converti prima testo ed effetti in curve." # mt
+media.pattern_load = "Carica tratto selezionato" # mt
+media.pattern_load_desc = "Carica motivo e impostazioni, poi applica alla curva per confermare." # mt
+media.pattern_start = "Distanza iniziale" # mt
+media.pattern_end = "Distanza finale" # mt
+media.pattern_offset = "Scostamento laterale" # mt
+media.pattern_rotation = "Rotazione" # mt
+media.pattern_follow = "Segui direzione del tracciato" # mt
+media.pattern_reverse = "Inverti direzione" # mt
+media.pattern_hint = "Scegli un motivo salvato, seleziona una curva e applica. Dimensione: lato maggiore. Spaziatura: da centro a centro. Le modifiche della libreria non cambiano i tratti esistenti." # mt
+media.pattern_spacing_desc = "Distanza da centro a centro lungo la curva, in millimetri." # mt
