@@ -83,6 +83,9 @@ writing and general embedded-motif-library import are not implemented.
 
 ## Original examples and checks
 
+[Download the original synthetic examples](../examples/pattern-strokes.zip)
+for a bundle of `.tdraw`, `.cdr`, SVG and PNG files.
+
 Run `cargo run -p tracedraw-cli --example pattern_strokes -- /tmp/pattern-strokes`
 to generate `.tdraw`, `.cdr`, `.svg` and `.png` examples. They show triangle
 markers on a curve at 6 and 10 mm spacing, a 180-degree turn, and a 3 mm
