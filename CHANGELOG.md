@@ -6,6 +6,8 @@ full, row-by-row status.
 
 ## Unreleased
 
+- Opening `.cdr`: a version 27 vector object's saved Gaussian blur opens in the editable FX list with its radius and visibility. Headless conversion prepares its picture for PNG, PDF and SVG; CDR saves keep the cached appearance and restore the editable source in TraceDraw. Other filters and unverified layouts are reported. See `docs/behavior/cdr-bitmap-effects.md` for the verified scope.
+
 - Saving to CorelDRAW (`.cdr`): text fitted to a path, or bent by an envelope, perspective or distortion, goes out as curves that fill with the nonzero rule (Fill winding on), as the text is drawn. They went out even-odd, so CorelDRAW showed holes where letters or their strokes overlapped (#2733).
 - Page Number Settings: Begin on page chooses the page that shows the first number, so covers and title pages get none; with Begin on page 3 and Start at 1, page 3 shows 1. It works for numbers on a master layer (saved with the field) and for numbers put on each page (#2127).
 - Transparency tool: a click on a node of a gradient transparency opens a small bar under it with that node's transparency, a slider and a field, and the property bar shows the picked node's transparency too, so the opacity of a linear, radial, square or any gradient transparency is set on the object. It could be changed only in the Transparency section of the Properties docker (#2737).
