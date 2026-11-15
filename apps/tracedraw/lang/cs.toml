@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Vzdálenost mezi středy podél křivky v milimetr
 media.pattern_name = "Název motivu" # mt
 media.pattern_gallery = "Uložené motivy" # mt
 media.pattern_empty = "Žádné uložené motivy. Vyberte objekt a uložte jej." # mt
+media.pattern_break = "Rozdělit vzor" # mt
+media.pattern_remove = "Odstranit vzor" # mt

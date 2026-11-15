@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "沿曲線的中心間距，單位為毫米。" # m
 media.pattern_name = "圖案名稱" # mt
 media.pattern_gallery = "已儲存圖案" # mt
 media.pattern_empty = "沒有已儲存圖案。請選取物件並儲存。" # mt
+media.pattern_break = "拆分圖案" # mt
+media.pattern_remove = "移除圖案" # mt

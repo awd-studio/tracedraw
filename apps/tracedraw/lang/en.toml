@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Centre-to-centre distance along the curve, in mill
 media.pattern_name = "Motif name"
 media.pattern_gallery = "Saved motifs"
 media.pattern_empty = "No saved motifs. Select an object and save it."
+media.pattern_break = "Break pattern apart"
+media.pattern_remove = "Remove pattern"

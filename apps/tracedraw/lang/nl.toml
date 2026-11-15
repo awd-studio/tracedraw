@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Afstand van midden tot midden langs de kromme, in 
 media.pattern_name = "Motiefnaam" # mt
 media.pattern_gallery = "Opgeslagen motieven" # mt
 media.pattern_empty = "Geen opgeslagen motieven. Selecteer een object en sla het op." # mt
+media.pattern_break = "Patroon splitsen" # mt
+media.pattern_remove = "Patroon verwijderen" # mt

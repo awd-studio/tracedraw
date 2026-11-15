@@ -2312,6 +2312,75 @@ fn pattern_stroke_controls(app: &mut App, ui: &mut Ui) {
     {
         app.load_pattern_stroke();
     }
+    if let Some((mut fill, mut stroke)) = app.selected_pattern_colors() {
+        ui.horizontal(|ui| {
+            ui.label(tr("docker.fill_color"));
+            if color_button(ui, &mut fill) {
+                app.run(Command::SetFill {
+                    shapes: app.selected_pattern_ids(),
+                    fill: Fill::Solid(fill),
+                });
+            }
+            ui.label(tr("docker.outline_color"));
+            if color_button(ui, &mut stroke) {
+                app.run(Command::PatchStroke {
+                    shapes: app.selected_pattern_ids(),
+                    stroke: tracedraw_core::Stroke::new(stroke, 0.2),
+                    fields: vec![tracedraw_core::patch::StrokeField::Paint],
+                });
+            }
+        });
+    }
+    ui.horizontal_wrapped(|ui| {
+        if ui
+            .add_enabled(has_pattern, egui::Button::new(tr("media.pattern_break")))
+            .clicked()
+        {
+            app.break_selected_patterns();
+        }
+        if ui
+            .add_enabled(has_pattern, egui::Button::new(tr("media.pattern_remove")))
+            .clicked()
+        {
+            app.remove_selected_patterns();
+        }
+    });
+    let references = [
+        (
+            tracedraw_core::pattern_stroke::PatternReference::CenterOfRotation,
+            "docker.fit_to_path_ref_pivot",
+        ),
+        (
+            tracedraw_core::pattern_stroke::PatternReference::BoundingBox,
+            "docker.fit_to_path_ref_box",
+        ),
+        (
+            tracedraw_core::pattern_stroke::PatternReference::OutlineBox,
+            "docker.fit_to_path_ref_outline",
+        ),
+    ];
+    ui.horizontal(|ui| {
+        ui.label(tr("docker.fit_to_path_reference"));
+        let shown = references
+            .iter()
+            .find(|(r, _)| *r == app.media_pattern.reference)
+            .map_or(String::new(), |(_, key)| tr(key));
+        crate::ui::keynav::ComboBox::from_id_salt("pattern_reference")
+            .selected_text(shown)
+            .show_ui(ui, |ui| {
+                for (reference, key) in references {
+                    ui.selectable_value(&mut app.media_pattern.reference, reference, tr(key));
+                }
+            });
+    });
+    ui.horizontal(|ui| {
+        let enabled = app.media_pattern.reference
+            != tracedraw_core::pattern_stroke::PatternReference::CenterOfRotation;
+        ui.add_enabled(enabled, egui::Label::new(tr("docker.fit_to_path_origin")));
+        origin_grid_with(ui, &mut app.media_pattern.origin, enabled, |i| {
+            egui::Id::new(("pattern_origin", i))
+        });
+    });
     let u = app.units;
     for (key, value, negative) in [
         ("docker.spacing", &mut app.media_pattern.spacing, false),
@@ -3865,6 +3934,10 @@ pub(crate) fn fit_origin_id(i: u8) -> egui::Id {
 /// Nine small squares, three by three, joined by lines: the point of each
 /// object's box that goes on the path. The chosen one is filled.
 fn origin_grid(ui: &mut Ui, origin: &mut u8, enabled: bool) {
+    origin_grid_with(ui, origin, enabled, fit_origin_id);
+}
+
+fn origin_grid_with(ui: &mut Ui, origin: &mut u8, enabled: bool, id: fn(u8) -> egui::Id) {
     const CELL: f32 = 12.0;
     let (rect, _) =
         ui.allocate_exact_size(egui::vec2(CELL * 3.0, CELL * 3.0), egui::Sense::hover());
@@ -3894,7 +3967,7 @@ fn origin_grid(ui: &mut Ui, origin: &mut u8, enabled: bool) {
         } else {
             egui::Sense::hover()
         };
-        let resp = ui.interact(r.expand(2.0), fit_origin_id(i), sense);
+        let resp = ui.interact(r.expand(2.0), id(i), sense);
         let fill = if *origin == i {
             color
         } else if resp.hovered() && enabled {

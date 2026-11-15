@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "曲線に沿った中心間の距離、単位は�
 media.pattern_name = "モチーフ名" # mt
 media.pattern_gallery = "保存したモチーフ" # mt
 media.pattern_empty = "保存したモチーフはありません。オブジェクトを選択して保存してください。" # mt
+media.pattern_break = "パターンを分割" # mt
+media.pattern_remove = "パターンを解除" # mt

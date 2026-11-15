@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "ໄລຍະລະຫວ່າງຈຸດກາ�
 media.pattern_name = "ຊື່ລວດລາຍ" # mt
 media.pattern_gallery = "ລວດລາຍທີ່ບັນທຶກ" # mt
 media.pattern_empty = "ຍັງບໍ່ມີລວດລາຍທີ່ບັນທຶກ. ເລືອກວັດຖຸແລະບັນທຶກ." # mt
+media.pattern_break = "ແຍກລວດລາຍ" # mt
+media.pattern_remove = "ເອົາລວດລາຍອອກ" # mt

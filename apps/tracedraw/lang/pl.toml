@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Odległość między środkami wzdłuż krzywej w 
 media.pattern_name = "Nazwa motywu" # mt
 media.pattern_gallery = "Zapisane motywy" # mt
 media.pattern_empty = "Brak zapisanych motywów. Zaznacz obiekt i zapisz go." # mt
+media.pattern_break = "Rozdziel wzór" # mt
+media.pattern_remove = "Usuń wzór" # mt

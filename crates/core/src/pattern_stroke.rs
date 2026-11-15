@@ -2,12 +2,22 @@
 //! Motifs are snapshots, so deleting or editing their library entry never
 //! changes existing drawings. Imported strokes may retain their original placements.
 
+use crate::geometry::Shape as _;
 use crate::geometry::{ParamCurve, ParamCurveArclen, ParamCurveDeriv, PathSeg};
 use crate::{Affine, BezPath, Point, Shape, ShapeKind, Vec2};
 use serde::{Deserialize, Serialize};
 
 /// Maximum copies across all subpaths of one stroke, including malformed input.
 pub const MAX_COPIES: usize = 4096;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum PatternReference {
+    #[default]
+    CenterOfRotation,
+    BoundingBox,
+    OutlineBox,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
@@ -27,6 +37,9 @@ pub struct PatternOptions {
     pub reverse: bool,
     /// Motif-space placement origin. None centres the motif's geometric box.
     pub anchor: Option<Point>,
+    pub reference: PatternReference,
+    /// Nine box points, left to right from the top row. Four is the centre.
+    pub origin: u8,
 }
 
 impl Default for PatternOptions {
@@ -41,6 +54,8 @@ impl Default for PatternOptions {
             follow_tangent: true,
             reverse: false,
             anchor: None,
+            reference: PatternReference::CenterOfRotation,
+            origin: 4,
         }
     }
 }
@@ -122,6 +137,62 @@ pub fn valid_motif(motif: &Shape) -> bool {
     visit(motif, 0, &mut 4096)
 }
 
+/// Whether an object currently draws a live pattern.
+pub fn is_pattern(shape: &Shape) -> bool {
+    shape
+        .effects
+        .iter()
+        .any(|e| matches!(e, crate::live::Effect::PatternStroke { .. }))
+}
+
+fn motif_outline_bounds(shape: &Shape, parent: Affine, copy_scale: f64) -> crate::Rect {
+    let transform = parent * shape.transform;
+    if let ShapeKind::Group { children } = &shape.kind {
+        return children
+            .iter()
+            .map(|c| motif_outline_bounds(c, transform, copy_scale))
+            .reduce(|a, b| a.union(b))
+            .unwrap_or_else(|| shape.bounds());
+    }
+    let bounds = (transform * shape.local_path()).bounding_box();
+    let grow = shape.stroke.as_ref().map_or(0.0, |s| {
+        let (sx, sy) = crate::document::axis_scale(transform);
+        let scale = if s.scale_with_object {
+            sx.max(sy)
+        } else {
+            1.0 / copy_scale
+        };
+        s.width.max(0.0) * scale / 2.0
+    });
+    bounds.inflate(grow, grow)
+}
+
+/// Remove only pattern entries, preserving the guide and the remaining stack.
+/// An unpainted control curve gets a hairline so it can be seen and selected.
+pub fn remove(shape: &mut Shape) {
+    let color = shape
+        .effects
+        .iter()
+        .find_map(|e| match e {
+            crate::live::Effect::PatternStroke { motif, .. } => motif
+                .stroke
+                .as_ref()
+                .map(|s| s.color)
+                .or_else(|| motif.fill.preview_color()),
+            _ => None,
+        })
+        .unwrap_or(crate::Color::BLACK);
+    let stack = shape
+        .effect_stack()
+        .into_iter()
+        .filter(|(e, _)| !matches!(e, crate::live::Effect::PatternStroke { .. }))
+        .collect();
+    (shape.effects, shape.parked_effects) = Shape::split_stack(stack);
+    if shape.stroke.is_none() {
+        shape.stroke = Some(crate::Stroke::hairline(color));
+    }
+}
+
 /// Generate local placements, then carry them through the guide's transform.
 /// The original path, its nodes, motif colours and child transforms are kept.
 /// Invalid parameters draw no copies; a zero length guide also draws none.
@@ -143,7 +214,21 @@ pub fn copies(guide: &Shape, motif: &Shape, o: &PatternOptions) -> Vec<Shape> {
         return Vec::new();
     }
     let scale = o.size / extent;
-    let anchor = o.anchor.unwrap_or_else(|| b.center());
+    let anchor = match o.reference {
+        PatternReference::CenterOfRotation => o.anchor.unwrap_or_else(|| b.center()),
+        PatternReference::BoundingBox | PatternReference::OutlineBox => {
+            let bounds = if o.reference == PatternReference::OutlineBox {
+                motif_outline_bounds(motif, Affine::IDENTITY, scale)
+            } else {
+                b
+            };
+            let origin = o.origin.min(8);
+            Point::new(
+                bounds.x0 + (origin % 3) as f64 * bounds.width() / 2.0,
+                bounds.y1 - (origin / 3) as f64 * bounds.height() / 2.0,
+            )
+        }
+    };
     if !anchor.is_finite() {
         return Vec::new();
     }
@@ -289,6 +374,262 @@ mod tests {
         assert!(engine.document().pattern_motifs.is_none());
         engine.redo().unwrap();
         assert_eq!(engine.document().pattern_motifs.as_ref().unwrap().len(), 1);
+    }
+
+    fn patterned_document(original: bool) -> (crate::Engine, ShapeId) {
+        let mut doc = Document::new("Pattern actions", Size::new(200.0, 100.0));
+        let id = doc.ids_mut().shape();
+        let mut g = guide();
+        g.id = id;
+        let mut m = motif();
+        m.stroke = Some(crate::Stroke::new(Color::BLACK, 0.6));
+        let options = PatternOptions {
+            size: 4.0,
+            ..Default::default()
+        };
+        let mut placed = copies(&g, &m, &options);
+        placed[0].transform = Affine::translate((0.01, 0.0)) * placed[0].transform;
+        g.effects.push(Effect::PatternStroke {
+            motif: Box::new(m.clone()),
+            options: options.clone(),
+            original: original.then(|| {
+                Box::new(PatternOriginal {
+                    path: g.local_path(),
+                    options,
+                    motif: Box::new(m),
+                    copies: placed,
+                })
+            }),
+        });
+        doc.pages[0].layers[0].shapes.push(g);
+        (crate::Engine::new(doc), id)
+    }
+
+    #[test]
+    fn pattern_paint_updates_imported_placements_without_regenerating_them() {
+        let (mut e, id) = patterned_document(true);
+        let before = crate::live::evaluate(e.document().find_shape(id).unwrap()).above;
+        let red = Color::rgb8(220, 20, 40);
+        let blue = Color::rgb8(30, 80, 220);
+        e.run(&crate::Command::SetFill {
+            shapes: vec![id],
+            fill: Fill::Solid(red),
+        })
+        .unwrap();
+        e.run(&crate::Command::PatchStroke {
+            shapes: vec![id],
+            stroke: crate::Stroke::new(blue, 9.0),
+            fields: vec![crate::patch::StrokeField::Paint],
+        })
+        .unwrap();
+        let source = e.document().find_shape(id).unwrap();
+        let after = crate::live::evaluate(source).above;
+        assert_eq!(after.len(), before.len());
+        for (old, new) in before.iter().zip(&after) {
+            assert_eq!(old.transform, new.transform);
+            assert_eq!(old.kind, new.kind);
+            assert_eq!(new.fill, Fill::Solid(red));
+            let stroke = new.stroke.as_ref().unwrap();
+            assert_eq!(stroke.color, blue);
+            assert_eq!(stroke.width, 0.6);
+        }
+        if let Effect::PatternStroke {
+            motif,
+            options,
+            original,
+        } = &source.effects[0]
+        {
+            assert!(original.as_ref().unwrap().unchanged(source, motif, options));
+        } else {
+            panic!("pattern");
+        }
+        e.run(&crate::Command::SetStroke {
+            shapes: vec![id],
+            stroke: None,
+        })
+        .unwrap();
+        assert!(crate::live::evaluate(e.document().find_shape(id).unwrap())
+            .above
+            .iter()
+            .all(|s| s.stroke.is_none()));
+        e.undo().unwrap();
+        assert_eq!(
+            crate::live::evaluate(e.document().find_shape(id).unwrap()).above,
+            after
+        );
+    }
+
+    #[test]
+    fn pattern_box_origins_follow_the_guide_transform_and_include_the_outline() {
+        let mut g = guide();
+        g.transform = Affine::translate((15.0, 25.0)) * Affine::rotate(0.7);
+        let m = motif();
+        let b = m.bounds();
+        for origin in 0..9u8 {
+            let source = Point::new(
+                b.x0 + (origin % 3) as f64 * b.width() / 2.0,
+                b.y1 - (origin / 3) as f64 * b.height() / 2.0,
+            );
+            let options = PatternOptions {
+                size: 4.0,
+                reference: PatternReference::BoundingBox,
+                origin,
+                ..Default::default()
+            };
+            let result = copies(&g, &m, &options);
+            assert!(
+                (result[0].transform * source - g.transform * Point::ZERO).hypot() < 1e-9,
+                "{origin}"
+            );
+        }
+        let mut m = m;
+        m.stroke = Some(crate::Stroke::new(Color::BLACK, 2.0));
+        let options = PatternOptions {
+            size: 4.0,
+            reference: PatternReference::OutlineBox,
+            origin: 0,
+            ..Default::default()
+        };
+        let result = copies(&g, &m, &options);
+        assert!(
+            (result[0].transform * Point::new(-3.0, 2.0) - g.transform * Point::ZERO).hypot()
+                < 1e-9
+        );
+        let resized = copies(
+            &g,
+            &m,
+            &PatternOptions {
+                size: 2.0,
+                ..options.clone()
+            },
+        );
+        assert!(
+            (resized[0].transform * Point::new(-4.0, 3.0) - g.transform * Point::ZERO).hypot()
+                < 1e-9
+        );
+        let old = serde_json::from_str::<PatternOptions>("{}").unwrap();
+        assert_eq!(old.reference, PatternReference::CenterOfRotation);
+        assert_eq!(old.origin, 4);
+    }
+
+    #[test]
+    fn pattern_break_is_in_place_has_unique_member_ids_and_is_undoable() {
+        for ungroup in [false, true] {
+            let (mut e, id) = patterned_document(true);
+            let expected = crate::live::evaluate(e.document().find_shape(id).unwrap());
+            let command = if ungroup {
+                crate::Command::Ungroup { group: id }
+            } else {
+                crate::Command::BreakApart { shape: id }
+            };
+            e.run(&command).unwrap();
+            let shapes = &e.document().pages[0].layers[0].shapes;
+            assert_eq!(shapes.len(), 7);
+            assert_eq!(shapes[0].id, id);
+            assert!(shapes.iter().all(|s| s.effects.is_empty()));
+            let ids: std::collections::HashSet<_> = shapes.iter().map(|s| s.id).collect();
+            assert_eq!(ids.len(), 7);
+            for (actual, wanted) in shapes[1..].iter().zip(&expected.above) {
+                assert_eq!(actual.transform, wanted.transform);
+                assert_eq!(actual.kind, wanted.kind);
+                assert_eq!(actual.fill, wanted.fill);
+                assert_eq!(actual.stroke, wanted.stroke);
+            }
+            e.undo().unwrap();
+            assert!(is_pattern(e.document().find_shape(id).unwrap()));
+            e.redo().unwrap();
+            assert_eq!(e.document().pages[0].layers[0].shapes.len(), 7);
+        }
+    }
+
+    #[test]
+    fn pattern_break_inside_a_group_keeps_order_transforms_and_child_ids_unique() {
+        let mut doc = Document::new("Nested pattern", Size::new(200.0, 100.0));
+        let id = doc.ids_mut().shape();
+        let mut g = guide();
+        g.id = id;
+        g.transform = Affine::translate((15.0, 25.0)) * Affine::rotate(0.4);
+        g.opacity = 0.6;
+        let mut second = motif();
+        second.transform = Affine::translate((2.0, 3.0));
+        second.fill = Fill::Solid(Color::rgb8(20, 80, 210));
+        let m = Shape::new(
+            ShapeId(0),
+            ShapeKind::Group {
+                children: vec![motif(), second],
+            },
+        );
+        g.effects.push(Effect::PatternStroke {
+            motif: Box::new(m),
+            options: PatternOptions::default(),
+            original: None,
+        });
+        let expected = crate::live::evaluate(&g).above;
+        let mut back = motif();
+        back.id = doc.ids_mut().shape();
+        let back_id = back.id;
+        let mut front = motif();
+        front.id = doc.ids_mut().shape();
+        let front_id = front.id;
+        let parent_id = doc.ids_mut().shape();
+        let mut parent = Shape::new(
+            parent_id,
+            ShapeKind::Group {
+                children: vec![back, g, front],
+            },
+        );
+        parent.transform = Affine::scale(1.5);
+        doc.pages[0].layers[0].shapes.push(parent);
+        let mut e = crate::Engine::new(doc);
+        e.run(&crate::Command::BreakApart { shape: id }).unwrap();
+        let ShapeKind::Group { children } = &e.document().find_shape(parent_id).unwrap().kind
+        else {
+            panic!("group");
+        };
+        assert_eq!(children.first().unwrap().id, back_id);
+        assert_eq!(children.last().unwrap().id, front_id);
+        assert_eq!(children.len(), expected.len() + 3);
+        let mut ids = std::collections::HashSet::new();
+        for (actual, wanted) in children[2..children.len() - 1].iter().zip(&expected) {
+            assert_eq!(actual.transform, wanted.transform);
+            assert_eq!(actual.opacity, wanted.opacity);
+            assert!(ids.insert(actual.id));
+            let ShapeKind::Group { children } = &actual.kind else {
+                panic!("motif group");
+            };
+            for c in children {
+                assert!(ids.insert(c.id));
+            }
+        }
+    }
+
+    #[test]
+    fn pattern_remove_retains_the_guide_and_other_active_and_parked_effects() {
+        let (mut e, id) = patterned_document(false);
+        let mut stack = e.document().find_shape(id).unwrap().effects.clone();
+        stack.push(Effect::FillOpacity { opacity: 0.7 });
+        e.run(&crate::Command::SetEffectStack {
+            shape: id,
+            effects: stack,
+            parked: vec![crate::document::ParkedEffect {
+                index: 1,
+                effect: Effect::FillOpacity { opacity: 0.3 },
+            }],
+        })
+        .unwrap();
+        let before = e.document().find_shape(id).unwrap().clone();
+        e.run(&crate::Command::RemovePatternStroke { shape: id })
+            .unwrap();
+        let after = e.document().find_shape(id).unwrap();
+        assert_eq!(after.id, before.id);
+        assert_eq!(after.kind, before.kind);
+        assert_eq!(after.transform, before.transform);
+        assert_eq!(after.effects, vec![Effect::FillOpacity { opacity: 0.7 }]);
+        assert_eq!(after.parked_effects.len(), 1);
+        assert_eq!(after.parked_effects[0].index, 0);
+        assert!(after.stroke.is_some());
+        e.undo().unwrap();
+        assert_eq!(e.document().find_shape(id).unwrap(), &before);
     }
 
     #[test]

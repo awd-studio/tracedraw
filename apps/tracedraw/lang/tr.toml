@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Eğri boyunca merkezler arası uzaklık, milimetre
 media.pattern_name = "Motif adı" # mt
 media.pattern_gallery = "Kayıtlı motifler" # mt
 media.pattern_empty = "Kayıtlı motif yok. Bir nesne seçip kaydedin." # mt
+media.pattern_break = "Deseni ayır" # mt
+media.pattern_remove = "Deseni kaldır" # mt

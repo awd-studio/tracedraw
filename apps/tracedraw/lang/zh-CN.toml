@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "沿曲线的中心间距，单位为毫米。" # m
 media.pattern_name = "图案名称" # mt
 media.pattern_gallery = "已保存图案" # mt
 media.pattern_empty = "没有已保存图案。请选择对象并保存。" # mt
+media.pattern_break = "拆分图案" # mt
+media.pattern_remove = "移除图案" # mt

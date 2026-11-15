@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "المسافة بين المراكز على طول
 media.pattern_name = "اسم العنصر الزخرفي" # mt
 media.pattern_gallery = "العناصر الزخرفية المحفوظة" # mt
 media.pattern_empty = "لا توجد عناصر محفوظة. حدد كائناً واحفظه." # mt
+media.pattern_break = "تفكيك النمط" # mt
+media.pattern_remove = "إزالة النمط" # mt

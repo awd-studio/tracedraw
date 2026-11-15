@@ -45,6 +45,25 @@ other live effects apart before saving them as motifs. This first version
 repeats rigid motifs; it does not stretch a motif continuously along a
 curve. The existing Preset, Brush and Sprayer modes keep their behaviour.
 
+## Paint, separation and removal
+
+Load the selected stroke to edit its settings. Fill colour and outline colour
+are available in the panel; the normal palette and Properties controls also
+paint the repeated motif. Paint changes leave saved library presets alone.
+Changing spacing or another parameter after painting keeps the new colours.
+Imported placements retain their exact geometry when only paint changes.
+
+Break pattern apart, Ungroup (Ctrl+U) and Break Apart (Ctrl+K) turn a selected
+live pattern into ordinary editable motif objects at the same position and
+stacking order. A multicolour motif remains a group of its component objects.
+The retained guide is unpainted so separating the pattern does not add a line
+to the picture. The generated members receive fresh object identities and
+come out selected. Existing ordinary groups keep their normal behaviour.
+
+Remove pattern removes the motif repetitions while keeping the same guide,
+its nodes, transform and other live effects. A guide without an outline gets
+a hairline so it remains visible and selectable. These actions can be undone.
+
 ## Parameters and placement
 
 Defaults: size 3 mm, spacing 8 mm, start and end distances 0 mm, side
@@ -58,6 +77,15 @@ Each subpath starts a new sequence. Its samples are at
 when it lands exactly on a sample. Closed subpaths omit a second sample
 at the seam. Spacing is centre to centre for native centred motifs.
 Imported motifs may retain an offset placement origin.
+
+Reference chooses the saved centre of rotation, Bounding box or Outline box.
+A single object's moved Pick-tool rotation centre is saved with its motif;
+otherwise the centre is its geometric box centre. The nine-point Origin grid
+is enabled for the two box references, numbered left to right from the top
+row. The chosen corner, edge midpoint or centre lies on the guide. Outline
+box includes outline width, including fixed-width outlines on resized motifs.
+Reference and Origin are saved with each live stroke; Load selected stroke
+restores them. Change them and Apply to curve to commit without moving nodes.
 
 Lengths and tangents come from the Bezier segments, using arc length
 accuracy 0.000001 mm. A copy is placed at the sampled point plus

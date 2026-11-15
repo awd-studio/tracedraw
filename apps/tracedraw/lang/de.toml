@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Abstand zwischen den Mittelpunkten entlang der Kur
 media.pattern_name = "Motivname" # mt
 media.pattern_gallery = "Gespeicherte Motive" # mt
 media.pattern_empty = "Keine gespeicherten Motive. Ein Objekt auswählen und speichern." # mt
+media.pattern_break = "Muster zerlegen" # mt
+media.pattern_remove = "Muster entfernen" # mt

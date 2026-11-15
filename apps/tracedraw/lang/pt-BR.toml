@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Distância entre centros ao longo da curva, em mil
 media.pattern_name = "Nome do motivo" # mt
 media.pattern_gallery = "Motivos salvos" # mt
 media.pattern_empty = "Nenhum motivo salvo. Selecione um objeto e salve-o." # mt
+media.pattern_break = "Separar padrão" # mt
+media.pattern_remove = "Remover padrão" # mt

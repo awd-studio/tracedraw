@@ -167,6 +167,10 @@ pub enum Command {
     SetPatternMotifs {
         motifs: Vec<crate::pattern_stroke::PatternMotif>,
     },
+    /// Keep the guide and other effects, removing its live pattern.
+    RemovePatternStroke {
+        shape: ShapeId,
+    },
     /// Replace the objects of symbol `index` (Edit Symbol): every
     /// instance draws the new ones. The symbol keeps its name. A
     /// definition that would draw an instance of the symbol itself, at
@@ -583,6 +587,7 @@ impl Command {
             Command::SetRasterFx { .. } => "Effect",
             Command::AddSymbol { .. } => "New Symbol",
             Command::SetPatternMotifs { .. } => "Pattern Motifs",
+            Command::RemovePatternStroke { .. } => "Remove Pattern",
             Command::SetSymbolShape { .. } => "Edit Symbol",
             Command::MovePage { .. } => "Move Page",
             Command::DeleteLayer { .. } => "Delete Layer",
@@ -857,6 +862,16 @@ impl Command {
             }
             Command::SetPatternMotifs { motifs } => {
                 doc.pattern_motifs = Some(motifs.clone());
+            }
+            Command::RemovePatternStroke { shape } => {
+                let s = any_mut(doc, *shape)?;
+                if s.effects
+                    .iter()
+                    .chain(s.parked_effects.iter().map(|p| &p.effect))
+                    .any(|e| matches!(e, crate::live::Effect::PatternStroke { .. }))
+                {
+                    crate::pattern_stroke::remove(s);
+                }
             }
             Command::SetSymbolShape { index, shape } => {
                 if *index >= doc.symbols.len() {
@@ -1448,6 +1463,12 @@ impl Command {
                 target.insert(insert_at.min(target.len()), combined);
             }
             Command::BreakApart { shape } => {
+                if doc
+                    .find_shape(*shape)
+                    .is_some_and(crate::pattern_stroke::is_pattern)
+                {
+                    return break_pattern(doc, *shape);
+                }
                 let (layer_id, idx) = doc.locate(*shape)?;
                 let s = doc.shape(*shape)?.1.clone();
                 // A brush stroke: its band becomes a group of plain filled
@@ -1729,6 +1750,12 @@ impl Command {
                 }
             },
             Command::Ungroup { group } => {
+                if doc
+                    .find_shape(*group)
+                    .is_some_and(crate::pattern_stroke::is_pattern)
+                {
+                    return break_pattern(doc, *group);
+                }
                 let (layer_id, idx) = doc.locate(*group)?;
                 let g = doc.layer_mut(layer_id)?.shapes.remove(idx);
                 // The group's perspective stays on each of its objects, which
@@ -2328,8 +2355,86 @@ fn swap_own_colors(shape: &mut Shape) {
     });
 }
 
+/// Bake in place, including inside a group or clip contents. Generated objects
+/// get fresh ids throughout, keep their drawing order and inherit no live effect.
+fn break_pattern(doc: &mut Document, id: ShapeId) -> Result<()> {
+    let source = any(doc, id)?.clone();
+    let evaluated = crate::live::evaluate(&source);
+    let mut parts = Vec::new();
+    for mut shape in evaluated.below {
+        shape.effects.clear();
+        shape.parked_effects.clear();
+        parts.push(shape.with_fresh_ids(&mut || doc.ids_mut().shape()));
+    }
+    let mut guide = evaluated.main;
+    guide.effects.clear();
+    guide.parked_effects.clear();
+    parts.push(guide);
+    for mut shape in evaluated.above {
+        shape.effects.clear();
+        shape.parked_effects.clear();
+        parts.push(shape.with_fresh_ids(&mut || doc.ids_mut().shape()));
+    }
+    fn replace(list: &mut Vec<Shape>, id: ShapeId, parts: &mut Option<Vec<Shape>>) -> bool {
+        if let Some(index) = list.iter().position(|s| s.id == id) {
+            if let Some(parts) = parts.take() {
+                list.splice(index..=index, parts);
+            }
+            return true;
+        }
+        for shape in list {
+            let found = match &mut shape.kind {
+                ShapeKind::Group { children } => replace(children, id, parts),
+                ShapeKind::ClipFrame { contents, .. } => replace(contents, id, parts),
+                _ => false,
+            };
+            if found {
+                return true;
+            }
+        }
+        false
+    }
+    let mut parts = Some(parts);
+    for layer in doc.all_layers_mut() {
+        if replace(&mut layer.shapes, id, &mut parts) {
+            return Ok(());
+        }
+    }
+    Err(Error::ShapeNotFound(id))
+}
+
 fn for_group_deep(shape: &mut Shape, f: &mut dyn FnMut(&mut Shape)) {
     f(shape);
+    // A live pattern paints its motif snapshots. Keep imported placements
+    // unchanged when only their paint changes, including the cache's source.
+    for effect in shape
+        .effects
+        .iter_mut()
+        .chain(shape.parked_effects.iter_mut().map(|p| &mut p.effect))
+    {
+        if let crate::live::Effect::PatternStroke {
+            motif, original, ..
+        } = effect
+        {
+            if crate::pattern_stroke::valid_motif(motif) {
+                for_group_deep(motif, f);
+            }
+            if let Some(original) = original {
+                if crate::pattern_stroke::valid_motif(&original.motif) {
+                    for_group_deep(&mut original.motif, f);
+                }
+                for copy in original
+                    .copies
+                    .iter_mut()
+                    .take(crate::pattern_stroke::MAX_COPIES)
+                {
+                    if crate::pattern_stroke::valid_motif(copy) {
+                        for_group_deep(copy, f);
+                    }
+                }
+            }
+        }
+    }
     match &mut shape.kind {
         ShapeKind::Group { children } => {
             for c in children {

@@ -216,7 +216,10 @@ impl App {
             return;
         };
         let anchor = if selected.is_some() {
-            None
+            self.pivots
+                .single
+                .get(&motif.id)
+                .map(|local| motif.transform * *local)
         } else {
             self.media_pattern.anchor
         };
@@ -247,6 +250,7 @@ impl App {
             self.media_pattern.anchor = anchor;
             if selected.is_some() {
                 self.media_pattern_original = None;
+                self.media_pattern_loaded_from = None;
             }
         }
     }
@@ -263,6 +267,7 @@ impl App {
         // displace a newly captured page-space object when the tangent turns.
         self.media_pattern.anchor = anchor;
         self.media_pattern_original = None;
+        self.media_pattern_loaded_from = None;
     }
 
     pub fn rename_pattern_motif(&mut self, index: usize) {
@@ -351,6 +356,128 @@ impl App {
         texture
     }
 
+    pub fn selected_pattern_ids(&self) -> Vec<tracedraw_core::ShapeId> {
+        self.selected_rc()
+            .iter()
+            .filter(|s| tracedraw_core::pattern_stroke::is_pattern(s))
+            .map(|s| s.id)
+            .collect()
+    }
+
+    /// Read the first painted member when a motif is a multicolour group.
+    pub fn selected_pattern_colors(&self) -> Option<(Color, Color)> {
+        fn colors(shape: &Shape) -> (Option<Color>, Option<Color>) {
+            if let ShapeKind::Group { children } = &shape.kind {
+                let (mut fill, mut stroke) = (None, None);
+                for child in children {
+                    let (f, s) = colors(child);
+                    fill = fill.or(f);
+                    stroke = stroke.or(s);
+                }
+                return (fill, stroke);
+            }
+            (
+                shape.fill.preview_color(),
+                shape.stroke.as_ref().map(|s| s.color),
+            )
+        }
+        self.selected_rc().iter().find_map(|s| {
+            s.effects.iter().find_map(|e| match e {
+                tracedraw_core::live::Effect::PatternStroke { motif, .. } => {
+                    let (fill, stroke) = colors(motif);
+                    Some((fill.unwrap_or(Color::BLACK), stroke.unwrap_or(Color::BLACK)))
+                }
+                _ => None,
+            })
+        })
+    }
+
+    pub fn remove_selected_patterns(&mut self) {
+        let commands: Vec<_> = self
+            .selected_pattern_ids()
+            .into_iter()
+            .map(|shape| Command::RemovePatternStroke { shape })
+            .collect();
+        if !commands.is_empty() {
+            if let Err(e) = self.engine.run_batch("Remove Pattern", &commands) {
+                self.status = e.to_string();
+            }
+        }
+    }
+
+    pub fn break_selected_patterns(&mut self) {
+        fn collect(shape: &Shape, ids: &mut Vec<tracedraw_core::ShapeId>) {
+            ids.push(shape.id);
+            match &shape.kind {
+                ShapeKind::Group { children } => {
+                    for c in children {
+                        collect(c, ids);
+                    }
+                }
+                ShapeKind::ClipFrame { frame, contents } => {
+                    collect(frame, ids);
+                    for c in contents {
+                        collect(c, ids);
+                    }
+                }
+                _ => {}
+            }
+        }
+        let mut before = Vec::new();
+        for shape in self.doc().all_layers().flat_map(|l| &l.shapes) {
+            collect(shape, &mut before);
+        }
+        let commands: Vec<_> = self
+            .selected_pattern_ids()
+            .into_iter()
+            .map(|shape| Command::BreakApart { shape })
+            .collect();
+        if commands.is_empty() {
+            return;
+        }
+        if let Err(e) = self.engine.run_batch("Break Pattern Apart", &commands) {
+            self.status = e.to_string();
+            return;
+        }
+        let mut after = Vec::new();
+        for shape in self.doc().all_layers().flat_map(|l| &l.shapes) {
+            collect(shape, &mut after);
+        }
+        let before: std::collections::HashSet<_> = before.into_iter().collect();
+        let mut selection = self.selection.clone();
+        let added: std::collections::HashSet<_> = after
+            .into_iter()
+            .filter(|id| !before.contains(id))
+            .collect();
+        fn roots(
+            shape: &Shape,
+            added: &std::collections::HashSet<tracedraw_core::ShapeId>,
+            out: &mut Vec<tracedraw_core::ShapeId>,
+        ) {
+            if added.contains(&shape.id) {
+                out.push(shape.id);
+                return;
+            }
+            match &shape.kind {
+                ShapeKind::Group { children } => {
+                    for c in children {
+                        roots(c, added, out);
+                    }
+                }
+                ShapeKind::ClipFrame { contents, .. } => {
+                    for c in contents {
+                        roots(c, added, out);
+                    }
+                }
+                _ => {}
+            }
+        }
+        for shape in self.doc().all_layers().flat_map(|l| &l.shapes) {
+            roots(shape, &added, &mut selection);
+        }
+        self.select(selection);
+    }
+
     pub fn pattern_stroke_effect(&self) -> Option<tracedraw_core::live::Effect> {
         let motif = self.media_motif.as_ref()?;
         if !tracedraw_core::pattern_stroke::valid_motif(motif) {
@@ -373,11 +500,12 @@ impl App {
                     motif,
                     options,
                     original,
-                } => Some(((**motif).clone(), options.clone(), original.clone())),
+                } => Some(((**motif).clone(), options.clone(), original.clone(), s.id)),
                 _ => None,
             })
         });
-        if let Some((motif, options, original)) = effect {
+        if let Some((motif, options, original, source)) = effect {
+            self.media_pattern_loaded_from = Some(source);
             self.media_mode = MediaMode::Pattern;
             self.media_width = options.size;
             self.media_motif_index = (0..self.pattern_motif_count()).find(|&i| {
@@ -615,9 +743,29 @@ impl App {
         let mut new_sel = Vec::new();
         for c in curves {
             if self.media_mode == MediaMode::Pattern {
-                let Some(effect) = self.pattern_stroke_effect() else {
+                let Some(mut effect) = self.pattern_stroke_effect() else {
                     continue;
                 };
+                if self.media_pattern_loaded_from == Some(c.id) {
+                    if let (
+                        tracedraw_core::live::Effect::PatternStroke {
+                            motif, original, ..
+                        },
+                        Some(tracedraw_core::live::Effect::PatternStroke {
+                            motif: current,
+                            original: placed,
+                            ..
+                        }),
+                    ) = (
+                        &mut effect,
+                        c.effects.iter().find(|e| {
+                            matches!(e, tracedraw_core::live::Effect::PatternStroke { .. })
+                        }),
+                    ) {
+                        *motif = current.clone();
+                        *original = placed.clone();
+                    }
+                }
                 let mut effects = c.effects.clone();
                 effects
                     .retain(|e| !matches!(e, tracedraw_core::live::Effect::PatternStroke { .. }));
@@ -907,6 +1055,75 @@ mod tests {
             "{texts:?}"
         );
         assert!(texts.iter().any(|t| t == "Delete"), "{texts:?}");
+    }
+
+    #[test]
+    fn pattern_actions_repaint_then_change_spacing_break_and_remove() {
+        let mut app = App::headless();
+        let mut m = Shape::new(
+            tracedraw_core::ShapeId(0),
+            ShapeKind::Path {
+                path: spray_object(2, Point::ZERO, 4.0, 0),
+                closed: true,
+            },
+        );
+        m.fill = Fill::Solid(Color::rgb8(20, 180, 70));
+        m.stroke = None;
+        let mut second = m.clone();
+        second.transform = tracedraw_core::Affine::translate((0.0, 5.0));
+        second.fill = Fill::Solid(Color::rgb8(30, 80, 220));
+        app.media_motif = Some(Shape::new(
+            tracedraw_core::ShapeId(0),
+            ShapeKind::Group {
+                children: vec![m, second],
+            },
+        ));
+        app.media_mode = MediaMode::Pattern;
+        let mut path = BezPath::new();
+        path.move_to((10.0, 10.0));
+        path.line_to((50.0, 10.0));
+        let id = app
+            .new_shape(ShapeKind::Path {
+                path: path.clone(),
+                closed: false,
+            })
+            .unwrap();
+        app.select(vec![id]);
+        app.apply_media_to_selection();
+        app.load_pattern_stroke();
+        assert_eq!(
+            app.selected_pattern_colors().unwrap().0,
+            Color::rgb8(20, 180, 70)
+        );
+        let red = Color::rgb8(220, 20, 30);
+        app.run(Command::SetFill {
+            shapes: vec![id],
+            fill: Fill::Solid(red),
+        });
+        app.media_pattern.spacing = 10.0;
+        app.apply_media_to_selection();
+        let result = tracedraw_core::live::evaluate(app.doc().find_shape(id).unwrap());
+        assert_eq!(result.above.len(), 5);
+        assert!(result.above.iter().all(|s| s.fill == Fill::Solid(red)));
+        let before =
+            tracedraw_render::render_page_image(app.doc(), app.doc().pages[0].id, 100.0).unwrap();
+        app.ungroup_selection();
+        assert_eq!(app.selection.len(), 6);
+        let after =
+            tracedraw_render::render_page_image(app.doc(), app.doc().pages[0].id, 100.0).unwrap();
+        assert_eq!(before.data(), after.data());
+        assert_eq!(app.doc().pages[0].layers[0].shapes.len(), 6);
+        app.engine.undo().unwrap();
+        app.select(vec![id]);
+        app.remove_selected_patterns();
+        let source = app.doc().find_shape(id).unwrap();
+        assert!(!tracedraw_core::pattern_stroke::is_pattern(source));
+        assert!(source.stroke.is_some());
+        assert!(matches!(&source.kind,ShapeKind::Path { path:p,.. } if *p==path));
+        app.engine.undo().unwrap();
+        app.select(vec![id]);
+        app.break_apart();
+        assert_eq!(app.selection.len(), 6);
     }
 
     /// The texts the property bar draws.

@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Jarak antarpusat sepanjang kurva dalam milimeter."
 media.pattern_name = "Nama motif" # mt
 media.pattern_gallery = "Motif tersimpan" # mt
 media.pattern_empty = "Belum ada motif tersimpan. Pilih objek dan simpan." # mt
+media.pattern_break = "Pisahkan pola" # mt
+media.pattern_remove = "Hapus pola" # mt

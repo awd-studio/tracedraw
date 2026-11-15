@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Distance de centre à centre le long de la courbe,
 media.pattern_name = "Nom du motif" # mt
 media.pattern_gallery = "Motifs enregistrés" # mt
 media.pattern_empty = "Aucun motif enregistré. Sélectionnez un objet et enregistrez-le." # mt
+media.pattern_break = "Séparer le motif" # mt
+media.pattern_remove = "Retirer le motif" # mt

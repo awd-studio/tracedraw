@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "Расстояние между центрами �
 media.pattern_name = "Название мотива" # mt
 media.pattern_gallery = "Сохранённые мотивы" # mt
 media.pattern_empty = "Нет сохранённых мотивов. Выберите объект и сохраните его." # mt
+media.pattern_break = "Разделить узор" # mt
+media.pattern_remove = "Удалить узор" # mt

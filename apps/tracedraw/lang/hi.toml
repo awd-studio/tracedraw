@@ -9284,3 +9284,5 @@ media.pattern_spacing_desc = "वक्र पर केंद्रों क�
 media.pattern_name = "रूपांकन का नाम" # mt
 media.pattern_gallery = "सहेजे गए रूपांकन" # mt
 media.pattern_empty = "कोई रूपांकन सहेजा नहीं गया। कोई वस्तु चुनकर सहेजें।" # mt
+media.pattern_break = "पैटर्न अलग करें" # mt
+media.pattern_remove = "पैटर्न हटाएँ" # mt
