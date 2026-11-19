@@ -980,6 +980,7 @@ mod tests {
                 sharpness: 0.0,
                 complex: None,
                 twist: 0.0,
+                bend: 0.0,
             })
             .unwrap();
         app.select(vec![motif]);
