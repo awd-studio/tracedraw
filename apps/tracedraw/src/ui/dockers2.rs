@@ -3885,9 +3885,6 @@ fn fit_to_path(app: &mut App, ui: &mut Ui) {
     };
     let u = app.units;
     app.fit_path_follow_selection();
-    if crate::sprayer_presets::controls(app, ui) {
-        return;
-    }
     // A live fit selected (its path, an object or a copy): the panel
     // shows its settings and a change refits at once.
     let live = app.live_fit_for_selection();
@@ -4312,6 +4309,7 @@ fn fit_to_path(app: &mut App, ui: &mut Ui) {
                 app.release_live_fit(path);
             }
         }
+        crate::sprayer_presets::controls(app, ui);
         return;
     }
     if f != app.fit_path {
@@ -4335,6 +4333,9 @@ fn fit_to_path(app: &mut App, ui: &mut Ui) {
         .clicked()
     {
         app.fit_objects_to_path();
+        app.docker_preview.clear();
+    }
+    if crate::sprayer_presets::controls(app, ui) {
         app.docker_preview.clear();
     }
 }

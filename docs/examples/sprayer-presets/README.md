@@ -9,7 +9,8 @@ synthetic motifs; no imported drawing data is included.
 green rectangles grouped as one motif near the bottom of the page, a
 straight live fit in the middle and a spare curved guide above it.
 
-Open the drawing and Object > Fit Objects to Path. Select the straight
+Open the drawing and Object > Fit Objects to Path, then scroll below the
+placement controls and expand Sprayer presets. Select the straight
 fit's guide or a placed group, enter a preset name and click Save new.
 Select the spare curve, open Browse library, choose the preset and click
 Use selected preset, then Apply preset to path.

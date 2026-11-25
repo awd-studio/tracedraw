@@ -1,6 +1,8 @@
 //! Reusable vector motifs and Fit Objects to Path settings, kept locally.
 //! Placement and live updates use the existing fit commands and algorithm.
 
+use crate::ui::btn_icons::{Ib, IconUi};
+use crate::ui::tips::RichTip;
 use crate::{app::App, fit_path::FitPathSettings};
 use serde::{Deserialize, Serialize};
 use tracedraw_core::{Affine, Command, Shape, ShapeId, ShapeKind};
@@ -713,11 +715,13 @@ pub(crate) fn library_window(app: &mut App, ctx: &egui::Context) {
             ui.ctx()
                 .data_mut(|d| d.insert_temp(egui::Id::new("sprayer_library_body"), ui.max_rect()));
             ui.horizontal(|ui| {
-                let search = ui.add(
-                    egui::TextEdit::singleline(&mut app.sprayer_library.search)
-                        .hint_text(tr("sprayer.search"))
-                        .desired_width((ui.available_width() - 180.).max(120.)),
-                );
+                let search = ui
+                    .add(
+                        egui::TextEdit::singleline(&mut app.sprayer_library.search)
+                            .hint_text(tr("sprayer.search"))
+                            .desired_width((ui.available_width() - 180.).max(120.)),
+                    )
+                    .rich_tip(crate::ui::tips::keyed("sprayer.search"));
                 if app.sprayer_library.focus_search {
                     search.request_focus();
                     app.sprayer_library.focus_search = false;
@@ -726,8 +730,10 @@ pub(crate) fn library_window(app: &mut App, ctx: &egui::Context) {
                     &mut app.sprayer_library.list,
                     false,
                     tr("sprayer.grid_view"),
-                );
-                ui.selectable_value(&mut app.sprayer_library.list, true, tr("sprayer.list_view"));
+                )
+                .rich_tip(crate::ui::tips::keyed("sprayer.grid_view"));
+                ui.selectable_value(&mut app.sprayer_library.list, true, tr("sprayer.list_view"))
+                    .rich_tip(crate::ui::tips::keyed("sprayer.list_view"));
             });
             let found =
                 filtered_presets(&app.settings.sprayer_presets, &app.sprayer_library.search);
@@ -804,16 +810,25 @@ pub(crate) fn library_window(app: &mut App, ctx: &egui::Context) {
                                     egui::TextEdit::singleline(&mut app.sprayer_library.rename)
                                         .char_limit(80)
                                         .desired_width(190.),
-                                );
+                                )
+                                .rich_tip(crate::ui::tips::keyed("sprayer.name"));
                                 ui.horizontal(|ui| {
-                                    if ui.button(tr("sprayer.rename")).clicked() {
+                                    if ui
+                                        .ibutton("sprayer.rename")
+                                        .rich_tip(crate::ui::tips::keyed("sprayer.rename"))
+                                        .clicked()
+                                    {
                                         let name = app.sprayer_library.rename.clone();
                                         app.status = match app.rename_sprayer_preset(index, &name) {
                                             Ok(()) => tr("sprayer.saved"),
                                             Err(key) => tr(key),
                                         };
                                     }
-                                    if ui.button(tr("sprayer.delete")).clicked() {
+                                    if ui
+                                        .ibutton("sprayer.delete")
+                                        .rich_tip(crate::ui::tips::keyed("sprayer.delete"))
+                                        .clicked()
+                                    {
                                         let active = app.sprayer_preset_pick;
                                         app.delete_sprayer_preset(index);
                                         app.sprayer_preset_pick = active.and_then(|i| {
@@ -842,15 +857,20 @@ pub(crate) fn library_window(app: &mut App, ctx: &egui::Context) {
             let mut footer = ui.new_child(egui::UiBuilder::new().max_rect(footer_rect));
             footer.separator();
             footer.horizontal(|ui| {
-                let use_button = ui.add_enabled(
-                    app.sprayer_library.selected.is_some(),
-                    egui::Button::new(tr("sprayer.use_selected")),
-                );
+                let use_button = ui
+                    .add_enabled(
+                        app.sprayer_library.selected.is_some(),
+                        Ib::new("sprayer.use_selected"),
+                    )
+                    .rich_tip_always(crate::ui::tips::keyed("sprayer.use_selected"));
                 ui.ctx().data_mut(|d| {
                     d.insert_temp(egui::Id::new("sprayer_library_use"), use_button.rect)
                 });
                 use_selected |= use_button.clicked();
-                close |= ui.button(tr("sprayer.close_library")).clicked();
+                close |= ui
+                    .ibutton("sprayer.close_library")
+                    .rich_tip(crate::ui::tips::keyed("sprayer.close_library"))
+                    .clicked();
             });
         });
     if use_selected {
@@ -863,11 +883,22 @@ pub(crate) fn library_window(app: &mut App, ctx: &egui::Context) {
 
 /// Returns true when applying a preset changed the current drawing.
 pub(crate) fn controls(app: &mut App, ui: &mut egui::Ui) -> bool {
+    // Keep the existing placement fields reachable on ordinary window heights.
+    // The library and saving controls are an optional extension of the panel.
+    let section = egui::CollapsingHeader::new(crate::i18n::tr("sprayer.title"))
+        .id_salt("sprayer_presets_section")
+        .show(ui, |ui| preset_controls(app, ui));
+    section
+        .header_response
+        .rich_tip(crate::ui::tips::pair("sprayer.title", "sprayer.hint"));
+    section.body_returned.unwrap_or(false)
+}
+
+fn preset_controls(app: &mut App, ui: &mut egui::Ui) -> bool {
     use crate::i18n::tr;
     let pick = app
         .sprayer_preset_pick
         .filter(|i| *i < app.settings.sprayer_presets.len());
-    ui.strong(tr("sprayer.title"));
     ui.horizontal(|ui| {
         if let Some(index) = pick {
             let picture = app.sprayer_picture(ui.ctx(), index, 128);
@@ -884,7 +915,11 @@ pub(crate) fn controls(app: &mut App, ui: &mut egui::Ui) -> bool {
             ui.label(tr("sprayer.choose"));
         }
     });
-    if ui.button(tr("sprayer.browse_library")).clicked() {
+    if ui
+        .ibutton("sprayer.browse_library")
+        .rich_tip(crate::ui::tips::keyed("sprayer.browse_library"))
+        .clicked()
+    {
         app.open_sprayer_library();
     }
     app.sprayer_preset_pick = pick;
@@ -893,15 +928,17 @@ pub(crate) fn controls(app: &mut App, ui: &mut egui::Ui) -> bool {
             .hint_text(tr("sprayer.name"))
             .char_limit(80)
             .desired_width(180.0),
-    );
+    )
+    .rich_tip(crate::ui::tips::keyed("sprayer.name"));
     let mut save = None;
     let mut delete = false;
     ui.horizontal_wrapped(|ui| {
         if ui
             .add_enabled(
                 !app.selection.is_empty() && !app.sprayer_preset_name.trim().is_empty(),
-                egui::Button::new(tr("sprayer.save")),
+                Ib::new("sprayer.save"),
             )
+            .rich_tip_always(crate::ui::tips::keyed("sprayer.save"))
             .clicked()
         {
             save = Some(None);
@@ -911,14 +948,16 @@ pub(crate) fn controls(app: &mut App, ui: &mut egui::Ui) -> bool {
                 pick.is_some()
                     && !app.selection.is_empty()
                     && !app.sprayer_preset_name.trim().is_empty(),
-                egui::Button::new(tr("sprayer.replace")),
+                Ib::new("sprayer.replace"),
             )
+            .rich_tip_always(crate::ui::tips::keyed("sprayer.replace"))
             .clicked()
         {
             save = Some(pick);
         }
         if ui
-            .add_enabled(pick.is_some(), egui::Button::new(tr("sprayer.delete")))
+            .add_enabled(pick.is_some(), Ib::new("sprayer.delete"))
+            .rich_tip_always(crate::ui::tips::keyed("sprayer.delete"))
             .clicked()
         {
             delete = true;
@@ -947,8 +986,9 @@ pub(crate) fn controls(app: &mut App, ui: &mut egui::Ui) -> bool {
     if ui
         .add_enabled(
             !delete && pick.is_some() && app.selection.len() == 1,
-            egui::Button::new(tr("sprayer.apply")),
+            Ib::new("sprayer.apply"),
         )
+        .rich_tip_always(crate::ui::tips::keyed("sprayer.apply"))
         .clicked()
     {
         if let Some(i) = pick {

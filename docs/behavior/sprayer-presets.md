@@ -1,7 +1,9 @@
 # Sprayer presets
 
-The Sprayer presets section of Object > Fit Objects to Path stores vector
+Expand Sprayer presets below the placement controls in Object > Fit Objects
+to Path to store vector
 motifs together with that panel's placement settings, including Live.
+The section starts collapsed so the existing placement controls stay reachable.
 The library is local to the current settings profile, shared by drawings,
 and remains available after restarting. The path panel shows the current
 preset and a compact preview. Browse library opens the application's
